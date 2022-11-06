@@ -30,6 +30,8 @@ class TransformerTrainer(pl.Trainer):
                          gpus=1,
                          callbacks=[early_stop_callback, checkpoint_callback],
                          progress_bar_refresh_rate=30,
+                         num_sanity_val_steps=0,  # Sanity check can throw errors by using few data as our metrics
+                         # cannot be calculated given the class imbalance.
                          logger=logger)
 
         self.start = time.time()  # Don't want to mess with inherited fit so just grab start time here

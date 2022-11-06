@@ -63,5 +63,18 @@
 
 :: python -m models.cnn --target "dsplnic_PSYCHIATRY_60"
 
-python -m models.bow --target "surv_mo_60" --epochs 1
-:: python -m models.cnn --target "surv_mo_60" --epochs 1
+:: python -m models.bow --target "dspln_PSYCHIATRY_60" --epochs 1
+:: python -m models.cnn --target "dspln_PSYCHIATRY_60" --epochs 1
+
+:: python -m models.cnn --target dspln_PSYCHIATRY_60 --table cnn_tuning_post_spec_fix --lr 0.0001 --dropout 0.8 --weight-decay 0.0001
+:: python -m models.cnn --target dspln_PSYCHIATRY_60 --table cnn_tuning_post_spec_fix --lr 0.0001 --dropout 0.8 --weight-decay 0.0001
+:: python -m models.cnn --target dspln_PSYCHIATRY_60 --table cnn_tuning_post_spec_fix --lr 0.0001 --dropout 0.8 --weight-decay 0.0001
+:: python -m models.cnn --target dspln_PSYCHIATRY_60 --table cnn_tuning_post_spec_fix --lr 0.0001 --dropout 0.8 --weight-decay 0.0001
+
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.99 --imbalance-fix undersampling
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 1 --imbalance-fix undersampling
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0 --imbalance-fix undersampling
+
+:: call .\bats\tables\see_psych.bat
+:: call .\bats\tables\see_counselling.bat
+call .\bats\tables\compare_sexes.bat

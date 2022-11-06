@@ -126,13 +126,13 @@ class Evaluator(object):
         # Some tables need an extra column, include that if it exists
         decimals = 3
         if self.table_extra == '':
-            latex_string = " & ".join([self.model_name,
+            latex_string = "\t".join([self.model_name,
                                        str(round(best_bal_acc_epoch['acc'], decimals)),
                                        str(round(best_bal_acc_epoch['bal_acc'], decimals)),
                                        str(round(best_bal_acc_epoch['auc'], decimals)),
                                        str(round(best_bal_acc_epoch['f1'], decimals)),
-                                       str(round(best_bal_acc_epoch['prec'], decimals)),
-                                       str(round(best_bal_acc_epoch['rec'], decimals))])
+                                       str(round(best_bal_acc_epoch['sens'], decimals)),
+                                       str(round(best_bal_acc_epoch['spec'], decimals))])
         else:
             latex_string = " & ".join([self.model_name,
                                        self.table_extra,

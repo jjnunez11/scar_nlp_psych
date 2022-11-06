@@ -31,12 +31,9 @@ def generate_pt_demo_table():
         n_pts = n_one + n_zero
 
         perc_one = round(100 * n_one / n_pts, 1)
-        perc_zero = round(100 * n_zero / n_pts, 1)
+        #  perc_zero = round(100 * n_zero / n_pts, 1)
 
-        if with_total:
-            label_balance_str = f"{n_zero} ({perc_zero}){horiz_sp}{n_one} ({perc_one}){horiz_sp}{n_pts}{vert_sp}"
-        else:
-            label_balance_str = f"{n_zero} ({perc_zero}){horiz_sp}{n_one} ({perc_one}){vert_sp}"
+        label_balance_str = f"{n_one} ({perc_one}){vert_sp}"
 
         return label_balance_str
 
@@ -48,34 +45,31 @@ def generate_pt_demo_table():
 
         perc = round(100 * n / total, 1)
 
-        return f'{n}{horiz_sp}{perc}{vert_sp}'
+        # return f'{n}{horiz_sp}{perc}{vert_sp}'
+        return f'{n} ({perc}){vert_sp}'
 
     def get_mean_std(df, col):
         mean = round(df[col].mean(), 1)
         std = round(df[col].std(), 1)
 
-        return f'{mean}{horiz_sp}{std}{vert_sp}'
+        # return f'{mean}{horiz_sp}{std}{vert_sp}'
+        return f'{mean} ({std}){vert_sp}'
 
-    f.write(f"{horiz_sp}n{horiz_sp}%{vert_sp}")
-    f.write(f"Total{horiz_sp}{total_n}{horiz_sp}100{vert_sp}")
-    f.write(f"Female{horiz_sp}"+ get_n_perc(df,"sex","F",total_n))
-    f.write(f"Stage I{horiz_sp}" + get_n_perc(df, "stage", "I", total_n))
-    f.write(f"Stage II{horiz_sp}" + get_n_perc(df, "stage", "II", total_n))
-    f.write(f"Stage III{horiz_sp}" + get_n_perc(df, "stage", "III", total_n))
-    f.write(f"Stage IV{horiz_sp}" + get_n_perc(df, "stage", "IV", total_n))
-    f.write(f"Unknown Stage{horiz_sp}" + get_n_perc(df, "stage", "", total_n))
+    f.write(f"Characteristics{horiz_sp}Dataset (n=47625) {vert_sp}")
+    # f.write(f"Total{horiz_sp}{total_n}{horiz_sp}100{vert_sp}")
+    f.write(f"Female (%){horiz_sp}"+ get_n_perc(df,"sex","F",total_n))
+    f.write(f"Stage I (%){horiz_sp}" + get_n_perc(df, "stage", "I", total_n))
+    f.write(f"Stage II (%){horiz_sp}" + get_n_perc(df, "stage", "II", total_n))
+    f.write(f"Stage III (%){horiz_sp}" + get_n_perc(df, "stage", "III", total_n))
+    f.write(f"Stage IV (%){horiz_sp}" + get_n_perc(df, "stage", "IV", total_n))
+    f.write(f"Unknown Stage (%){horiz_sp}" + get_n_perc(df, "stage", "", total_n))
     # f.write(vert_sp)
-    f.write(f"{horiz_sp}Mean{horiz_sp}Standard Deviation{vert_sp}")
-    f.write(f'Age at Diagnosis{horiz_sp}' + get_mean_std(df, "age_at_diagnosis"))
-    f.write(f'Observed Months Survived since Diagnosis{horiz_sp}' + get_mean_std(df, "mo_survived"))
-    f.write(f'Observed Months Survived since Document{horiz_sp}' + get_mean_std(df, "mo_survived_since_initial_consult"))
-    f.write(f'Months Survived since Diagnosis of those who Died{horiz_sp}' + get_mean_std(df_died, "mo_survived"))
-    f.write(f'Months Survived since Document of those who Died{horiz_sp}' + get_mean_std(df_died, "mo_survived_since_initial_consult"))
-    # f.write(vert_sp)
-    f.write(f"{horiz_sp}Did not Survive (%){horiz_sp}Survived (%){vert_sp}")
-    f.write(f"6 Months{horiz_sp}" + get_label_balance("surv_mo_6", False))
-    f.write(f"36 Months{horiz_sp} " + get_label_balance("surv_mo_36", False))
-    f.write(f"60 Months{horiz_sp} " + get_label_balance("surv_mo_60", False))
+    f.write(f'Age at Diagnosis, mean (SD){horiz_sp}' + get_mean_std(df, "age_at_diagnosis"))
+    f.write(f'Observed Months Survived since Diagnosis, mean (SD){horiz_sp}' + get_mean_std(df, "mo_survived"))
+    f.write(f'Observed Months Survived since Document, mean (SD){horiz_sp}' + get_mean_std(df, "mo_survived_since_initial_consult"))
+    # f.write(f"{horiz_sp}Did not Survive (%){horiz_sp}Survived (%){vert_sp}")
+    f.write(f"Seen by Psychiatry (%){horiz_sp}" + get_label_balance("dspln_PSYCHIATRY_60", False))
+    f.write(f"Seen by Counselling (%){horiz_sp}" + get_label_balance("dspln_SOCIALWORK_60", False))
 
     f.close()
 
