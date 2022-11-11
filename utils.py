@@ -64,14 +64,14 @@ def print_from_history(history, index, start_time, epoch, n_epochs):
     index = history.index[index]  # Re-cast this so that -1 index can be used with .loc below
 
     minutes_elapsed = int(round((time.time() - start_time) / 60, 0))
-    epoch_header = ['Minutes', 'Epoch', 'Dev/Acc', 'Dev/BalAcc', 'Dev/AUC', 'Dev/Pr', 'Dev/Rec', 'Dev/F1',
+    epoch_header = ['Minutes', 'Epoch', 'Dev/Acc', 'Dev/BalAcc', 'Dev/AUC', 'Dev/Sens', 'Dev/Spec', 'Dev/F1',
                     'Dev/Loss']
     epoch_metrics = [[minutes_elapsed, f'{epoch}/{n_epochs}',
                       round(history.loc[index, "acc"], 3),
                       round(history.loc[index, "bal_acc"], 3),
                       round(history.loc[index, "auc"], 3),
-                      round(history.loc[index, "prec"], 3),
-                      round(history.loc[index, "rec"], 3),
+                      round(history.loc[index, "sens"], 3),
+                      round(history.loc[index, "spec"], 3),
                       round(history.loc[index, "f1"], 3),
                       round(history.loc[index, "loss"], 3)]]
     print(pd.DataFrame(epoch_metrics, columns=epoch_header, index=['']))

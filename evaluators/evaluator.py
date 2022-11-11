@@ -6,7 +6,7 @@ from evaluators.evaluator_globals import ARGS_COL_MAP, COLS_IN_ORDER
 
 
 class Evaluator(object):
-    METRICS = ['acc', 'bal_acc', 'auc', 'prec', 'rec', 'f1', 'loss']  # Performance metrics to evaluate
+    METRICS = ['acc', 'bal_acc', 'auc', 'prec', 'sens', 'f1', 'loss']  # Performance metrics to evaluate
 
     def __init__(self,
                  model_name,
@@ -109,7 +109,7 @@ class Evaluator(object):
         to_append['F1'] = best_f1
 
         # Add in additional metrics
-        to_append['Recall'] = best_bal_acc_epoch['rec']
+        to_append['Sensitivity'] = best_bal_acc_epoch['sens']
         to_append['Specificity'] = best_bal_acc_epoch['spec']
         to_append['Precision'] = best_bal_acc_epoch['prec']
         to_append['Loss'] = best_bal_acc_epoch['loss']
@@ -126,24 +126,20 @@ class Evaluator(object):
         # Some tables need an extra column, include that if it exists
         decimals = 3
         if self.table_extra == '':
-            latex_string = "\t".join([self.model_name,
-                                       str(round(best_bal_acc_epoch['acc'], decimals)),
-                                       str(round(best_bal_acc_epoch['bal_acc'], decimals)),
-                                       str(round(best_bal_acc_epoch['auc'], decimals)),
-                                       str(round(best_bal_acc_epoch['f1'], decimals)),
-                                       str(round(best_bal_acc_epoch['sens'], decimals)),
-                                       str(round(best_bal_acc_epoch['spec'], decimals))])
+            latex_string = '\t'.join([self.model_name,
+                                      str(round(best_bal_acc_epoch['acc'], decimals)),
+                                      str(round(best_bal_acc_epoch['bal_acc'], decimals)),
+                                      str(round(best_bal_acc_epoch['sens'], decimals)),
+                                      str(round(best_bal_acc_epoch['spec'], decimals))])
         else:
-            latex_string = " & ".join([self.model_name,
+            latex_string = '\t'.join([self.model_name,
                                        self.table_extra,
                                        str(round(best_bal_acc_epoch['acc'], decimals)),
                                        str(round(best_bal_acc_epoch['bal_acc'], decimals)),
-                                       str(round(best_bal_acc_epoch['auc'], decimals)),
-                                       str(round(best_bal_acc_epoch['f1'], decimals)),
-                                       str(round(best_bal_acc_epoch['prec'], decimals)),
-                                       str(round(best_bal_acc_epoch['rec'], decimals))])
+                                       str(round(best_bal_acc_epoch['sens'], decimals)),
+                                       str(round(best_bal_acc_epoch['spec'], decimals))])
 
-        latex_string = latex_string + r" \\"
+        # latex_string = latex_string + r" \\" needed when using LaTeX
         print(latex_string)
         to_append['LaTeX String'] = latex_string
         to_append['Table Extra'] = self.table_extra
