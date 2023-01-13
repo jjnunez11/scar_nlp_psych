@@ -42,9 +42,6 @@ class SCARTransformerDataset(Dataset):
 
 
 class SCARTransformer(pl.LightningDataModule):
-    NUM_LINES = {'train': 30953,
-                 'dev': 4459,
-                 'test': 4458}
     DATASET_NAME = "SCAR"
     NUM_CLASSES = 1
 
@@ -53,14 +50,30 @@ class SCARTransformer(pl.LightningDataModule):
         self.batch_size = config.batch_size
         self.max_len = config.max_tokens
         self.device = config.device
+
         if undersample:
             self.data_dir = os.path.join(config.data_dir, config.target + "_undersampled")
-            self.NUM_LINES['train'] = 1815
+            self.n_lines['train'] = 1815
         else:
             self.data_dir = os.path.join(config.data_dir, config.target)
+
         self.f_train = os.path.join(self.data_dir, 'train.tsv')
         self.f_dev = os.path.join(self.data_dir, 'dev.tsv')
         self.f_test = os.path.join(self.data_dir, 'test.tsv')
+
+        with open(self.f_train) as f:
+            self.n_train = len(f.readlines())
+        f.close()
+        with open(self.f_dev) as f:
+            self.n_dev = len(f.readlines())
+        f.close()
+        with open(self.f_test) as f:
+            self.n_test = len(f.readlines())
+        f.close()
+        self.n_lines = {'train': self.n_train,
+                        'dev': self.n_dev,
+                        'test': self.n_test}
+
         self.debug = config.debug
 
         pretrained_model_path = os.path.join(config.pretrained_dir, config.pretrained_file)
@@ -73,17 +86,17 @@ class SCARTransformer(pl.LightningDataModule):
 
         # Tokenize up to max length, and put into a PyTorch Dataset
         self.train_dataset = SCARTransformerDataset(consults=self.raw_x_train,
-                                             labels=self.raw_y_train,
-                                             tokenizer=self.tokenizer,
-                                             max_len=self.max_len)
+                                                    labels=self.raw_y_train,
+                                                    tokenizer=self.tokenizer,
+                                                    max_len=self.max_len)
         self.dev_dataset = SCARTransformerDataset(consults=self.raw_x_dev,
-                                           labels=self.raw_y_dev,
-                                           tokenizer=self.tokenizer,
-                                           max_len=self.max_len)
+                                                  labels=self.raw_y_dev,
+                                                  tokenizer=self.tokenizer,
+                                                  max_len=self.max_len)
         self.test_dataset = SCARTransformerDataset(consults=self.raw_x_test,
-                                            labels=self.raw_y_test,
-                                            tokenizer=self.tokenizer,
-                                            max_len=self.max_len)
+                                                   labels=self.raw_y_test,
+                                                   tokenizer=self.tokenizer,
+                                                   max_len=self.max_len)
 
     def clean_data(self, f):
         """
@@ -100,7 +113,7 @@ class SCARTransformer(pl.LightningDataModule):
         file = open(f, "r")
 
         i = 0
-        for line in tqdm(file, desc=f'Reading in {f}'):
+        for line in tqdm(file):
             values = line.split("\t")
             assert len(values) == 2, "Reading a file, we found a line with multiple tabs"
             raw_label, raw_text = values[0], values[1]
@@ -163,12 +176,10 @@ class SCARTransformer(pl.LightningDataModule):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=8)
 
     def get_class_balance(self):
-        #  print(f"Expecting 17692/30953 {17692/30953} for scar_emots")
         targets_equal_one = sum(x[0] for x in self.raw_y_train)
         targets_total = len(self.raw_y_train)
-        #  print(f"Found {targets_equal_one}/{targets_total} or {round(targets_equal_one/targets_total, 3)}")
 
-        return targets_equal_one/targets_total
+        return targets_equal_one / targets_total
 
     def get_n_training(self):
         return len(self.raw_y_train)

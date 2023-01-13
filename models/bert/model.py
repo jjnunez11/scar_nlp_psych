@@ -98,6 +98,7 @@ class BERT(pl.LightningModule):
             print(f'Error, this is output: {output}')
         target_labels_int = target_labels.int()
 
+        ## print(f'Here is the length of dev epoch end pred_labels: {len(pred_labels)}')
         # Calculate and then log the metrics being used for this proejct
         dev_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
         self.log('dev_perf',

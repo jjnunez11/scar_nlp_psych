@@ -28,5 +28,12 @@ def get_args():
     parser.add_argument('--dataset', type=str, default='SCAR', choices=['SCAR'])
     parser.add_argument('--debug', action='store_true', dest='debug',
                         help="If included, loads a smaller training set to save time while debugging")
+    parser.add_argument('--eval_only', default=False, dest='eval_only', action='store_true',
+                        help="If provided, will not train a model, but will instead load a model and evaluate that")
+    parser.add_argument('--model-file',
+                        default=None,
+                        help="Absolute path to a PyTorch model checkpoint (neural models) or pickle dump (BoW)"
+                             " to load and evaluate")
+
 
     return parser
