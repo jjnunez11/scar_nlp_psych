@@ -77,4 +77,17 @@
 
 :: call .\bats\tables\see_psych.bat
 :: call .\bats\tables\see_counselling.bat
-call .\bats\tables\compare_sexes.bat
+:: call .\bats\tables\compare_sexes.bat
+
+:: tuning best few
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.3 --wdrop 0 --embed-droprate 0.001 --lr 0.0001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.1 --wdrop 0 --embed-droprate 0.1 --lr 0.0001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.1 --wdrop 0.01 --embed-droprate 0.1 --lr 0.001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.3 --wdrop 0.0001 --embed-droprate 0.01 --lr 0.0001
+
+python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning" --dropout 0.2 --wdrop 0.0001 --embed-droprate 0.01 --lr 0.001
+python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.3 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0001
+python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.001 --embed-droprate 00.1 --lr 0.0001
+python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0005
+
+
