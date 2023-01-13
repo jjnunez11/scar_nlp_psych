@@ -36,5 +36,5 @@ COLS_IN_ORDER = ['Run Name', 'Finished', 'Table', 'Platform', 'Model', 'Target',
                  'LSTM Layers', 'LSTM Hidden Dimension', 'LSTM Bidirectional', 'LSTM Wt Dropout', 'LSTM Embed Dropout',
                  'Max Tokens',
                  'CUDA Blocking', 'Epochs', 'Learning Rate', 'Patience', 'Class Imbalance Fix',
-                 'Accuracy', 'Balanced Accuracy', 'AUC', 'Sensitivity',  'Specificity', 'F1', 'Precision',
+                 'Accuracy', 'Balanced Accuracy', 'AUC', 'F1', 'Recall', 'Precision', 'Specificity',
                  'PPV', 'NPV', 'TP', 'TN', 'FP', 'FN', 'LaTeX String', 'Table Extra']

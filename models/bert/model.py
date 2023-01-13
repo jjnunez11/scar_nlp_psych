@@ -33,6 +33,9 @@ class BERT(pl.LightningModule):
         self.val_bal = Accuracy(average='macro',
                                 num_classes=2,
                                 multiclass=True)
+        self.test_bal = Accuracy(average='macro',
+                                 num_classes=2,
+                                 multiclass=True)
 
     def forward(self, input_ids, attn_mask, labels=None):
         output = self.bert(input_ids=input_ids, attention_mask=attn_mask)
@@ -51,7 +54,7 @@ class BERT(pl.LightningModule):
         target_labels = batch['label']
 
         loss, pred_labels = self(input_ids, attention_mask, target_labels)
-        self.log('train_loss', loss, prog_bar=True, logger=True)
+        self.log('train_loss', loss, prog_bar=False, logger=False)
 
         return {"loss": loss, "predictions": pred_labels.detach(), "labels": target_labels}
 
@@ -62,18 +65,18 @@ class BERT(pl.LightningModule):
         target_labels_int = target_labels.int()
 
         # Calculate and then log the metrics being used for this proejct
-        dev_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
+        train_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
         self.log('train_perf',
-                 dev_epoch_metrics,
+                 train_epoch_metrics,
                  prog_bar=False,
                  logger=True,
                  on_epoch=True)
 
         # Keep balanced accuracy a full on torchmetrics module, as part of this class, for progress bar
         bal = self.tr_bal(pred_labels, target_labels_int)
-        self.log('tr_bal', bal, prog_bar=True, logger=False)
+        self.log('tr_bal', bal, prog_bar=False, logger=False)
 
-        print(f'\nTraining epoch completed, used {len(pred_labels)} examples')
+        # print(f'\nTraining epoch completed, used {len(pred_labels)} examples')
 
     def validation_step(self, batch, batch_idx):
         input_ids = batch['input_ids']
@@ -95,11 +98,6 @@ class BERT(pl.LightningModule):
             print(f'Error, this is output: {output}')
         target_labels_int = target_labels.int()
 
-        # print(f'Here is the len of output: {len(output)}')
-        # print(f'Here is the len of stacked_pred: {stacked_pred.size()}')
-
-        # pred_labels = torch.zeros(pred_labels.size(), device=self.device) for testing metrics are working
-
         # Calculate and then log the metrics being used for this proejct
         dev_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
         self.log('dev_perf',
@@ -112,18 +110,42 @@ class BERT(pl.LightningModule):
         bal = self.val_bal(pred_labels, target_labels_int)
         self.log('val_bal', bal, prog_bar=True, logger=False)
 
-        print(f'\nValidation epoch completed, used {len(pred_labels)} examples')
+        # print(f'\nValidation epoch completed, used {len(pred_labels)} examples')
 
     def test_step(self, batch, batch_idx):
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
-        labels = batch['label']
+        target_labels = batch['label']
 
-        outputs = self(input_ids, attention_mask)
-        loss = self.loss_fn(outputs, labels)
-        self.log('test_loss', loss, prog_bar=True, logger=True)
+        loss, pred_labels = self(input_ids, attention_mask, target_labels)
+        self.log("test_loss", loss, prog_bar=False, logger=True, on_epoch=True)
 
-        return loss
+        return {"loss": loss, "predictions": pred_labels.detach(), "labels": target_labels}
+
+    def test_epoch_end(self, output):
+        # Take all the target and predicted labels from the epoch and flatten into 1-dim tensors,
+        # then make target into int
+        print("test_epoch_end")
+        try:
+            pred_labels, target_labels = self.flatten_epoch_output(output)
+        except:
+            print(f'This is output len: {len(output)}')
+            print(f'Error, this is output: {output}')
+        target_labels_int = target_labels.int()
+
+        # Calculate and then log the metrics being used for this project
+        test_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
+        self.log('test_perf',
+                 test_epoch_metrics,
+                 prog_bar=False,
+                 logger=True,
+                 on_epoch=True)
+
+        # Keep balanced accuracy a full on TorchMetrics module, as part of this class, for early stopping
+        bal = self.test_bal(pred_labels, target_labels_int)
+        self.log('test_bal', bal, prog_bar=True, logger=False)
+
+        print(f'\nTest epoch completed, used {len(pred_labels)} examples')
 
     def configure_optimizers(self):
         print(f'Here is our weight decay: {self.weight_decay}')
@@ -155,33 +177,10 @@ class BERT(pl.LightningModule):
             epoch_pred_labels = torch.cat([x['predictions'] for x in output]).squeeze()
         except RuntimeError:
             print(f'Could not cat, here is the first prediction output: {output[0]["predictions"]}')
-            # print(f'Could not cat, here is the batch tensor: {batch_pred_labels}')
-            # print(f'Could not cat, here is the batch target tensor: {batch_target_labels}')
 
         try:
             epoch_target_labels = torch.cat([x['labels'] for x in output]).squeeze()
         except RuntimeError:
             print(f'Could not cat, here is the first prediction output: {output[0]["labels"]}')
 
-        # first_run = True
-        #
-        # for batch in output:
-        #     batch_pred_labels = batch['predictions'].squeeze()
-        #     batch_target_labels = batch['labels'].squeeze()
-        #
-        #     if first_run:
-        #         epoch_pred_labels = batch_pred_labels
-        #         epoch_target_labels = batch_target_labels
-        #         first_run = False
-        #     else:
-        #         try:
-        #             epoch_pred_labels = torch.cat([epoch_pred_labels, batch_pred_labels])
-        #         except RuntimeError:
-        #             print(f'Could not cat, here is the batch tensor: {batch_pred_labels}')
-        #             print(f'Could not cat, here is the epoch tensor: {epoch_pred_labels}')
-        #             print(f'Could not cat, here is the batch target tensor: {batch_target_labels}')
-        #             print(f'Could not cat, here is the epoch target tensor: {epoch_target_labels}')
-        #         epoch_target_labels = torch.cat([epoch_target_labels, batch_target_labels])
-
         return epoch_pred_labels, epoch_target_labels
-

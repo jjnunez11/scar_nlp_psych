@@ -54,7 +54,7 @@ def calculate_metrics(pred_labels, target_labels, loss=torch.tensor([0])):
                      'auc': auroc(pred_labels, target_labels,
                                   pos_label=1).item(),
                      'prec': precision(pred_labels, target_labels).item(),
-                     'sens': recall(pred_labels, target_labels).item(),
+                     'rec': recall(pred_labels, target_labels).item(),
                      'spec': specificity(pred_labels, target_labels).item(),
                      'f1': f1(pred_labels, target_labels).item(),
                      'loss': loss,

@@ -5,14 +5,8 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.utilities import rank_zero_only
 from pytorch_lightning.loggers import LightningLoggerBase
 from pytorch_lightning.loggers.base import rank_zero_experiment
-import numpy as np
-from tqdm import tqdm
-import torch
-from sklearn import metrics
 import time
 import pandas as pd
-import torch.nn.functional as F
-from utils import print_from_history
 import pytorch_lightning as pl
 
 
@@ -30,8 +24,6 @@ class TransformerTrainer(pl.Trainer):
                          gpus=1,
                          callbacks=[early_stop_callback, checkpoint_callback],
                          progress_bar_refresh_rate=30,
-                         num_sanity_val_steps=0,  # Sanity check can throw errors by using few data as our metrics
-                         # cannot be calculated given the class imbalance.
                          logger=logger)
 
         self.start = time.time()  # Don't want to mess with inherited fit so just grab start time here
@@ -43,10 +35,10 @@ class TransformerTrainer(pl.Trainer):
         :return:
         """
 
-        train_history, dev_history = self.logger[1].get_history()
+        train_history, dev_history, test_history = self.logger[1].get_history()
         start = self.start
 
-        return train_history, dev_history, start
+        return train_history, dev_history, test_history, start
 
 
 class MyLogger(LightningLoggerBase):
@@ -67,6 +59,7 @@ class MyLogger(LightningLoggerBase):
 
         self.train_history = pd.DataFrame()
         self.dev_history = pd.DataFrame()
+        self.test_history = pd.DataFrame()
 
     @property
     def name(self):
@@ -95,24 +88,27 @@ class MyLogger(LightningLoggerBase):
         # your code to record metrics goes here
 
         if 'dev_perf' in metrics:
-            # print("\n Metrics provided for a dev epoch\n")
-            # print(f'Metrics: {metrics["dev_perf"]}')
-            # print(f'Step: {step}')
             dev_perf = metrics["dev_perf"]
             dev_perf["epoch"] = metrics["epoch"]
             self.dev_history = self.dev_history.append(dev_perf, ignore_index=True)
             self.dev_history.index.name = "epoch"
-            # print(f'Here is the dev history: {self.dev_history.shape}')
 
-        if 'train_perf_epoch' in metrics:
-            # print("\nTraining epoch\n")
-            # print(f'Metrics: {metrics["train_perf_epoch"]}')
-            # print(f'Step: {step}')
+        elif 'train_perf' in metrics:
+            pass
 
+        elif 'train_perf_epoch' in metrics:
             train_perf = metrics["train_perf_epoch"]
             train_perf["epoch"] = metrics["epoch"]
             self.train_history = self.train_history.append(train_perf, ignore_index=True)
             self.train_history.index.name = "epoch"
+
+        elif 'test_perf' in metrics:
+            test_perf = metrics["test_perf"]
+            test_perf["epoch"] = metrics["epoch"]
+            self.test_history = self.test_history.append(test_perf, ignore_index=True)
+            self.test_history.index.name = "epoch"
+        else:
+            raise ValueError(f"Unexpected metrics, here they are: {metrics}")
 
         pass
 
@@ -132,4 +128,4 @@ class MyLogger(LightningLoggerBase):
     #    pass
 
     def get_history(self):
-        return self.train_history, self.dev_history
+        return self.train_history, self.dev_history, self.test_history

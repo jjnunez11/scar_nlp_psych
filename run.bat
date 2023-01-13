@@ -85,9 +85,10 @@
 :: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.1 --wdrop 0.01 --embed-droprate 0.1 --lr 0.001
 :: python -m models.lstm --target dspln_PSYCHIATRY_60  --dropout 0.3 --wdrop 0.0001 --embed-droprate 0.01 --lr 0.0001
 
-python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning" --dropout 0.2 --wdrop 0.0001 --embed-droprate 0.01 --lr 0.001
-python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.3 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0001
-python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.001 --embed-droprate 00.1 --lr 0.0001
-python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0005
+:: python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning" --dropout 0.2 --wdrop 0.0001 --embed-droprate 0.01 --lr 0.001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.3 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.001 --embed-droprate 00.1 --lr 0.0001
+:: python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0005
 
+python -m models.bert --target "dsplnic_PSYCHIATRY_60" --table "test" --epochs 2
 
