@@ -3,8 +3,6 @@ from torchtext.data.datasets_utils import _RawTextIterableDataset
 from torchtext.vocab import build_vocab_from_iterator
 import io
 import os.path
-# from collections import Counter
-# from torchtext.vocab import Vocab
 from torchtext.data.utils import get_tokenizer
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
@@ -13,18 +11,17 @@ import random
 
 
 class SCAR:
-    NUM_LINES = {'train': 30953,
-                 'dev': 4459,
-                 'test': 4458}
     DATASET_NAME = "SCAR"
     NUM_CLASSES = 1
 
     def __init__(self, batch_size, data_root, target, undersample=False, device=torch.device('cuda:0'), min_freq=10):
         self.batch_size = batch_size
         self.device = device
+
         if undersample:
             self.data_dir = os.path.join(data_root, target + "_undersampled")
-            self.NUM_LINES['train'] = 1815
+            self.n_lines['train'] = 1815
+            raise NotImplementedError("Need to fix undersampling")
         else:
             self.data_dir = os.path.join(data_root, target)
 
@@ -34,6 +31,26 @@ class SCAR:
         self.f_dict = {'train': self.f_train,
                        'dev': self.f_dev,
                        'test': self.f_test}
+
+        # Count number of lines in all of the data splits
+        with open(self.f_train) as f:
+            self.n_train = len(f.readlines())
+        f.close()
+        with open(self.f_dev) as f:
+            self.n_dev = len(f.readlines())
+        f.close()
+        with open(self.f_test) as f:
+            self.n_test = len(f.readlines())
+        f.close()
+
+        # Create a dict with the lengths
+        self.n_lines = {'train': self.n_train,
+                        'dev': self.n_dev,
+                        'test': self.n_test}
+
+        if undersample:
+            self.n_lines['train'] = 1815
+            raise NotImplementedError
 
         # Make iters of the input text files
         self.train_iter, self.dev_iter, self.test_iter = self.create_iter(split=('train', 'dev', 'test'))
@@ -93,13 +110,13 @@ class SCAR:
             for line in f:
                 values = line.split("\t")
                 assert len(values) == 2, \
-                    'Error: excepted SCAR datafile to be tsv format, but splitting did not yield 2 parts'
+                    'Error: excepted SCAR datafile to be tsv format, but splitting by tab did not yield 2 parts'
                 label = values[0]  # root.target_parse(values[0])
                 text = values[1]
                 yield label, text
 
         iterator = generate_scar_data(split, root.f_dict)
-        return _RawTextIterableDataset(root.DATASET_NAME, root.NUM_LINES[split], iterator)
+        return _RawTextIterableDataset(root.DATASET_NAME, root.n_lines[split], iterator)
 
     def collate_batch(self, batch):
         label_list, text_list = [], []
@@ -183,8 +200,6 @@ class SCAR:
         return [self.vocab['<BOS>']] + [self.vocab[token] for token in self.tokenizer(text)] + [self.vocab['<EOS>']]
 
     def get_class_balance(self):
-        # print(f"Expecting 17692/30953 {17692/30953} for scar_emots")
-
         targets_equal_one = 0
         targets_total = 0
 
@@ -193,30 +208,4 @@ class SCAR:
             targets_total += len(targets.cpu().detach().numpy())
             targets_equal_one += targets.cpu().detach().numpy().sum()
 
-        return targets_equal_one/targets_total
-
-if __name__ == '__main__':
-    scar = SCAR(2)
-
-    # Check that iter and lists created
-    print(f'train iter length {len(scar.train_iter)}')
-
-    # Check vocab creation
-    print("The length of the new vocab is", len(scar.vocab))
-
-    check_token = scar.vocab.get_itos()
-    print("The token at index 2 is", check_token[2])
-
-    # Check that text transformer is working
-    print("input to the text_transform:", "here is an example")
-    print("output of the text_transform:", scar.text_transform("here is an example"))
-
-    # Check that collate_batch is working
-    train_dataloader = DataLoader(scar.create_iter(split='train'), batch_size=8,
-                                  collate_fn=scar.collate_batch)
-    # print(next(iter(train_dataloader)))
-
-    # Finally, check that bucket_dataloader is working
-    d = scar.dev_dataloader()
-    print(len(scar.create_iter(split='dev')))
-    print(next(iter(d)))
+        return targets_equal_one / targets_total

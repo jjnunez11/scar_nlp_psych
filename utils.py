@@ -19,8 +19,6 @@ def series_to_matrix(series):
     except TypeError:
         eval_list = a_list
 
-    # print(eval_list[0])
-
     matrix = np.row_stack(eval_list)
     return matrix
 
@@ -70,7 +68,7 @@ def print_from_history(history, index, start_time, epoch, n_epochs):
                       round(history.loc[index, "acc"], 3),
                       round(history.loc[index, "bal_acc"], 3),
                       round(history.loc[index, "auc"], 3),
-                      round(history.loc[index, "sens"], 3),
+                      round(history.loc[index, "rec"], 3),
                       round(history.loc[index, "spec"], 3),
                       round(history.loc[index, "f1"], 3),
                       round(history.loc[index, "loss"], 3)]]
