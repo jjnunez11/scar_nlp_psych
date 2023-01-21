@@ -91,6 +91,9 @@
 :: python -m models.lstm --target dspln_PSYCHIATRY_60 --table "lstm_tuning"  --dropout 0.1 --wdrop 0.0001 --embed-droprate 0.1 --lr 0.0005
 
 :: python -m models.bert --target "dspln_PSYCHIATRY_60_toy" --table "test" --epochs 1
-python -m models.cnn --target "dspln_PSYCHIATRY_60_toy" --table "test" --epochs 1
-python -m models.lstm --target "dspln_PSYCHIATRY_60_toy" --table "test" --epochs 1
+:: python -m models.cnn --target "dspln_PSYCHIATRY_60_toy" --table "test" --epochs 1
+:: python -m models.lstm --target "dspln_PSYCHIATRY_60_toy" --table "test" --epochs 1
 
+python .\bats\tuning\cnn_tuning.py
+python .\bats\tuning\cnn_tuning.py
+python .\bats\tuning\cnn_tuning.py

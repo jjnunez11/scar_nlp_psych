@@ -102,4 +102,4 @@ def neural_main(model_name, model_class, model_trainer, args):
     evaluator.write_result_history()
     evaluator.append_to_results()
 
-    quit("All done!")
+    # quit("All done!")
