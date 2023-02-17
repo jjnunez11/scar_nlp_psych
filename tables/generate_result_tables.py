@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import re
 import numpy as np
+from scipy.stats import ttest_rel
 
 pd.set_option("display.max_colwidth", 10000)
 
@@ -16,6 +17,11 @@ class ResultsGenerator(object):
     filter_cols = ["Table", "Model"]
     # Models
     models = ["BoW", "CNN", "LSTM", "BERT"]
+    # Spacers for writing to copy-pastes for the tables
+    horiz_sp = "\t"  # What to separate columns
+    vert_sp = "\n"  # What to place at the end of the line to seperate rows vertically
+    # Formatting for numbers for tables
+    num_format = '{:<05}'
 
     # CSV files to read raw results from
     psych_raw_results_csv = os.path.join(r"../", "results", "dspln_PSYCHIATRY_12", "dspln_PSYCHIATRY_12_results.csv")
@@ -66,9 +72,7 @@ class ResultsGenerator(object):
         renamed_paper_metrics = ["Sensitivity" if x == "Recall" else x for x in renamed_paper_metrics]
         f.write("\t".join(["Model"] + renamed_paper_metrics))
 
-        horiz_sp = "\t"  # What to separate columns
-        vert_sp = "\n"  # What to place at the end of the line to seperate rows vertically
-        f.write(vert_sp)
+        f.write(self.vert_sp)
 
         # Write the results in JAMA format
         for model in self.models:
@@ -76,19 +80,67 @@ class ResultsGenerator(object):
             for metric in self.paper_metrics:
                 mean = str(df.loc[model, metric]['mean'])
                 std = str(df.loc[model, metric]['std'])
-                num_format = '{:<05}'
-                mean = num_format.format(mean)
-                std = num_format.format(std)
-                # print(std)
-                s = f'{horiz_sp}{mean} ({std})'
+                mean = self.num_format.format(mean)
+                std = self.num_format.format(std)
+                s = f'{self.horiz_sp}{mean} ({std})'
                 f.write(s)
-            f.write(vert_sp)
+            f.write(self.vert_sp)
 
         f.close()
 
     def generate_result_tables(self):
         self.generate_result_table("psych")
         self.generate_result_table("sw")
+
+    def generate_p_table(self, target):
+
+        if target == 'psych':
+            df = self.psych_raw_df
+        elif target == 'sw':
+            df = self.sw_raw_df
+        else:
+            raise ValueError
+
+        f = open(os.path.join(self.out_dir, f"{target}_pvalue_table.txt"), "w")
+        header = self.horiz_sp.join(['Model'] + self.models) + self.vert_sp
+
+        for metric in ["Balanced Accuracy", "AUC"]:
+            f.write(metric + self.vert_sp)
+            f.write(header)
+            df_metric = df[["Model", metric]]
+            for model_a in self.models:
+                f.write(model_a)
+                for model_b in self.models:
+                    df_model_a = df_metric[df_metric["Model"] == model_a][metric]
+                    df_model_b = df_metric[df_metric["Model"] == model_b][metric]
+                    p_value = ttest_rel(df_model_a, df_model_b).pvalue
+                    f.write(f"{self.horiz_sp}{p_value.round(3)}")
+                f.write(self.vert_sp)
+
+        f.close()
+
+    def generate_p_table_both_dsplns(self):
+        df_psych = self.psych_raw_df
+        df_sw = self.sw_raw_df
+
+        f = open(os.path.join(self.out_dir, f"both_dsplns_pvalue_table.txt"), "w")
+        f.write(self.horiz_sp + "P-value" + self.vert_sp)
+
+        for metric in ["Balanced Accuracy", "AUC"]:
+            f.write(metric)
+            df_psych_metric = df_psych[metric]
+            df_sw_metric = df_sw[metric]
+            p_value = ttest_rel(df_psych_metric, df_sw_metric).pvalue
+            f.write(f"{self.horiz_sp}{p_value.round(3)}")
+            f.write(self.vert_sp)
+
+        f.close()
+
+    def generate_p_tables(self):
+        self.generate_p_table('psych')
+        # self.generate_p_table('sw')
+        self.generate_p_table_both_dsplns()
+
 
 def generate_result_table(table):
     """
@@ -166,7 +218,8 @@ if __name__ == "__main__":
     # generate_result_table("compare_sex_controls")
 
     generator = ResultsGenerator()
-    generator.generate_result_tables()
+    # generator.generate_result_tables()
+    generator.generate_p_tables()
 
     print("Printed table LaTeX string to file!")
 
