@@ -175,3 +175,6 @@
 
 :: python -m models.lstm --target "dspln_SOCIALWORK_12" --table "lstm_tuning" --dropout 0.3 --wdrop 0.001 --embed-droprate 0.1   --lr 0.001
 :: python -m models.bert --target "dspln_SOCIALWORK_12" --table "bert_tuning" --weight-decay 0.1 --lr 0.00005
+
+call .\bats\tables\see_psych.bat
+call .\bats\tables\see_counselling.bat
