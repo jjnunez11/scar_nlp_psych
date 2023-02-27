@@ -24,8 +24,8 @@ class ResultsGenerator(object):
     num_format = '{:<05}'
 
     # CSV files to read raw results from
-    psych_raw_results_csv = os.path.join(r"../", "results", "dspln_PSYCHIATRY_12", "dspln_PSYCHIATRY_12_results.csv")
-    sw_raw_results_csv = os.path.join(r"../", "results", "dspln_SOCIALWORK_12", "dspln_SOCIALWORK_12_results.csv")
+    psych_raw_results_csv = os.path.join(r"../", "results", "final_results", "dspln_PSYCHIATRY_12", "dspln_PSYCHIATRY_12_results.csv")
+    sw_raw_results_csv = os.path.join(r"../", "results", "final_results", "dspln_SOCIALWORK_12", "dspln_SOCIALWORK_12_results.csv")
 
     # Folder to print result tables
     out_dir = os.path.join("./result_tables")
@@ -127,12 +127,13 @@ class ResultsGenerator(object):
         f.write(self.horiz_sp + "P-value" + self.vert_sp)
 
         for metric in ["Balanced Accuracy", "AUC"]:
-            f.write(metric)
-            df_psych_metric = df_psych[metric]
-            df_sw_metric = df_sw[metric]
-            p_value = ttest_rel(df_psych_metric, df_sw_metric).pvalue
-            f.write(f"{self.horiz_sp}{p_value.round(3)}")
-            f.write(self.vert_sp)
+            f.write(metric+self.vert_sp)
+            for model in self.models:
+                df_psych_metric = df_psych[df_psych["Model"] == model][metric]
+                df_sw_metric = df_sw[df_sw["Model"] == model][metric]
+                p_value = ttest_rel(df_psych_metric, df_sw_metric).pvalue
+                f.write(f"{model}{self.horiz_sp}{p_value.round(3)}{self.vert_sp}")
+                # f.write(self.vert_sp)
 
         f.close()
 
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     # generate_result_table("compare_sex_controls")
 
     generator = ResultsGenerator()
-    # generator.generate_result_tables()
+    generator.generate_result_tables()
     generator.generate_p_tables()
 
     print("Printed table LaTeX string to file!")

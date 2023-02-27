@@ -1,6 +1,6 @@
 :: tbl_see_psych
 :: Performance predicting whether a patient will see a psychiatrist in first 1 year (12 months)
-:: Repeat x5 for variance estimation
+:: Repeat x10 for variance estimation
 
 :: BOW
 python -m models.bow --target "dspln_PSYCHIATRY_12" --table "see_psych" --classifier "l2logreg" --l2logreg-c 0.6 --epochs 1 --max-tokens 5000

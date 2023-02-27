@@ -1,6 +1,6 @@
 :: tbl_see_counselling
 :: Performance predicting whether a patient will see a counsellor (SOCIALWORK) in first 1 year (12 months)
-:: Repeat x5 for variance estimation
+:: Repeat x10 for variance estimation
 
 :: BOW
 python -m models.bow --target "dspln_SOCIALWORK_12" --table "see_counselling" --classifier "l2logreg" --l2logreg-c 1.05 --epochs 1 --max-tokens 5000
