@@ -14,6 +14,15 @@ def generate_pt_demo_table():
     total_n = len(df.index)
     f = open(os.path.join(METHOD_TABLES_DIR, "pt_demo" + ".txt"), "w")
 
+    # Extra files for months till seeing a discipline
+    df_m_after_ic_psych = pd.read_csv(os.path.join(LABEL_DIR, "y_dspln_PSYCHIATRY_12_m_after_ic.csv"))
+    df_m_after_ic_sw = pd.read_csv(os.path.join(LABEL_DIR, "y_dspln_SOCIALWORK_12_m_after_ic.csv"))
+    # df_m_after_ic_psych = df_m_after_ic_psych.astype({'pt_mo_since_initial_consult': 'int'})
+    # df_m_after_ic_sw = df_m_after_ic_sw.astype({'pt_mo_since_initial_consult': 'int'})
+    df_m_after_ic_psych = df_m_after_ic_psych[df_m_after_ic_psych["pt_mo_since_initial_consult"] < 12]
+    df_m_after_ic_sw = df_m_after_ic_sw[df_m_after_ic_sw["pt_mo_since_initial_consult"] < 12]
+
+
     horiz_sp = "\t"  # What to separate columns
     vert_sp = "\n"  # What to place at the end of the line to seperate rows vertically
 
@@ -68,8 +77,13 @@ def generate_pt_demo_table():
     f.write(f'Observed Months Survived since Diagnosis, mean (SD){horiz_sp}' + get_mean_std(df, "mo_survived"))
     f.write(f'Observed Months Survived since Document, mean (SD){horiz_sp}' + get_mean_std(df, "mo_survived_since_initial_consult"))
     # f.write(f"{horiz_sp}Did not Survive (%){horiz_sp}Survived (%){vert_sp}")
-    f.write(f"Seen by Psychiatry (%){horiz_sp}" + get_label_balance("dspln_PSYCHIATRY_60", False))
-    f.write(f"Seen by Counselling (%){horiz_sp}" + get_label_balance("dspln_SOCIALWORK_60", False))
+    f.write(f"Seen by Psychiatry (%){horiz_sp}" + get_label_balance("dspln_PSYCHIATRY_12", False))
+    f.write(f"Seen by Counselling (%){horiz_sp}" + get_label_balance("dspln_SOCIALWORK_12", False))
+    f.write(f"Months until seen by Psychiatry, mean (SD){horiz_sp}" +
+            get_mean_std(df_m_after_ic_psych, 'pt_mo_since_initial_consult'))
+    f.write(f"Months until seen by Counselling, mean (SD){horiz_sp}" +
+            get_mean_std(df_m_after_ic_sw, 'pt_mo_since_initial_consult'))
+    f.write(f'THIS IS CURRENTLY FOR 12 MONTHS!')
 
     f.close()
 

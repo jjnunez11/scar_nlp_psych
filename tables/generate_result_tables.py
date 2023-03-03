@@ -139,7 +139,7 @@ class ResultsGenerator(object):
 
     def generate_p_tables(self):
         self.generate_p_table('psych')
-        # self.generate_p_table('sw')
+        self.generate_p_table('sw')
         self.generate_p_table_both_dsplns()
 
 
