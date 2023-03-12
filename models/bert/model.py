@@ -22,7 +22,6 @@ class BERT(pl.LightningModule):
         self.lr = config.lr
         self.loss_fn = loss_fn
         self.weight_decay = config.weight_decay
-        # self.device = config.device  # pl seems to default send to cuda:0, using this for metrics
 
         # Initialize the metrics
 
@@ -76,8 +75,6 @@ class BERT(pl.LightningModule):
         bal = self.tr_bal(pred_labels, target_labels_int)
         self.log('tr_bal', bal, prog_bar=False, logger=False)
 
-        # print(f'\nTraining epoch completed, used {len(pred_labels)} examples')
-
     def validation_step(self, batch, batch_idx):
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
@@ -98,7 +95,6 @@ class BERT(pl.LightningModule):
             print(f'Error, this is output: {output}')
         target_labels_int = target_labels.int()
 
-        ## print(f'Here is the length of dev epoch end pred_labels: {len(pred_labels)}')
         # Calculate and then log the metrics being used for this proejct
         dev_epoch_metrics = calculate_metrics(pred_labels, target_labels_int)
         self.log('dev_perf',
@@ -110,8 +106,6 @@ class BERT(pl.LightningModule):
         # Keep balanced accuracy a full on torchmetrics module, as part of this class, for early stopping
         bal = self.val_bal(pred_labels, target_labels_int)
         self.log('val_bal', bal, prog_bar=True, logger=False)
-
-        # print(f'\nValidation epoch completed, used {len(pred_labels)} examples')
 
     def test_step(self, batch, batch_idx):
         input_ids = batch['input_ids']

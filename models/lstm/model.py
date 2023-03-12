@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torchtext
-# import torch.nn.functional as F
 from models.lstm.embed_regularize import embedded_dropout
 from models.lstm.weight_drop import WeightDrop
 
@@ -36,9 +35,6 @@ class LSTM(nn.Module):
         else:
             print("Unsupported Mode")
             exit()
-
-        # print(f'self.embed num_embeddings is: {self.embed.num_embeddings} '
-        #      f'while embedding_dim is {self.embed.embedding_dim}')
 
         # Create model
         self.lstm = nn.LSTM(

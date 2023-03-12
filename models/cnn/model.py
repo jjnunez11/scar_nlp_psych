@@ -38,9 +38,6 @@ class CNN(nn.Module):
             print("Unsupported Mode")
             exit()
 
-        # print(f'self.embed num_embeddings is: {self.embed.num_embeddings} '
-        #      f'while embedding_dim is {self.embed.embedding_dim}')
-
         #####
         if config.mode == 'rand':
             rand_embed_init = torch.Tensor(vocab_size, words_dim).uniform_(-0.25, 0.25)

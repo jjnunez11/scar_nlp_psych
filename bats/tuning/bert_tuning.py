@@ -1,3 +1,5 @@
+# Due to some werid bug, this would always end up errors so didn't actually use it for bert tuning
+
 from subprocess import check_output
 
 # Hyper-parameters

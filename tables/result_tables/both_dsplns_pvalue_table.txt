@@ -1,0 +1,11 @@
+	P-value
+Balanced Accuracy
+BoW	0.0
+CNN	0.004
+LSTM	0.003
+BERT	0.56
+AUC
+BoW	0.0
+CNN	0.0
+LSTM	0.0
+BERT	0.167

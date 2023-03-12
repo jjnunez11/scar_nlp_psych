@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import numpy as np
 from datasets.scar import SCAR
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords

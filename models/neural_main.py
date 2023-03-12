@@ -91,15 +91,6 @@ def neural_main(model_name, model_class, model_trainer, args):
                                                                            test_dataloader)
     evaluator = Evaluator(model_name, test_history, config, start_time)
 
-    # Use evaluator to print the best epochs
-    # print('\nBest epoch for AUC:')
-    # evaluator.print_best_auc()
-
-    # print('\nBest epoch for F1:')
-    # evaluator.print_best_f1()
-
     # Write the run history, and update the master results file
     evaluator.write_result_history()
     evaluator.append_to_results()
-
-    # quit("All done!")
