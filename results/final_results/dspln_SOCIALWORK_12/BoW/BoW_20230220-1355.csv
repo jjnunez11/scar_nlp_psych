@@ -1,0 +1,37 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn
+0,0.7053356766700745,0.6967213153839111,0.7642592787742615,0.38921651244163513,0.6817511320114136,0.7116914391517639,0.495530903339386,0.0,0.3892165122156698,0.8924534574468085,1386.0,2175.0,5369.0,647.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 1
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_SOCIALWORK_12
+table: see_counselling
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+max_tokens: 5000
+use_idf: True
+classifier: l2logreg
+rf_estimators: 50
+elnet_l1_ratio: 0.67
+elnet_alpha: 0.1
+elnet_power_t: 0.01
+gbdt_estimators: 100
+gbdt_lr: 0.1
+gbdt_max_depth: 3
+l2logreg_c: 1.05
+run_name: BoW_20230220-1355
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12\BoW

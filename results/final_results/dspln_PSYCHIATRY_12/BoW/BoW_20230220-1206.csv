@@ -1,0 +1,37 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn
+0,0.8767881393432617,0.6847004890441895,0.783698558807373,0.06122449040412903,0.4864864945411682,0.8829144239425659,0.10876132547855377,0.0,0.061224489795918366,0.990953457921676,72.0,1104.0,8325.0,76.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 1
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_PSYCHIATRY_12
+table: see_psych
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+max_tokens: 5000
+use_idf: True
+classifier: l2logreg
+rf_estimators: 50
+elnet_l1_ratio: 0.67
+elnet_alpha: 0.1
+elnet_power_t: 0.01
+gbdt_estimators: 100
+gbdt_lr: 0.1
+gbdt_max_depth: 3
+l2logreg_c: 0.6
+run_name: BoW_20230220-1206
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12\BoW

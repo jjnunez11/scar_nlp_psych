@@ -1,0 +1,39 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn
+0,0.8513104319572449,0.7415940165519714,0.8352222442626953,0.06361149251461029,0.6283783912658691,0.8548096418380737,0.11552794277667999,1.1182398796081543,0.06361149110807114,0.9932224276032039,93.0,1369.0,8060.0,55.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 100
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_PSYCHIATRY_12
+table: see_psych
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+mode: rand
+output_channel: 500
+words_dim: 300
+embed_dim: 300
+dropout: 0.85
+lr: 0.0001
+weight_decay: 0.0001
+pretrained_dir: C:\Users\jjnunez\PycharmProjects\hedwig-data\embeddings\word2vec
+pretrained_file: GoogleNews-vectors-negative300.txt
+batch_size: 16
+device: cuda:0
+target_classes: 1
+vocab_size: 22338
+run_name: CNN_20230223-0937
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12\CNN

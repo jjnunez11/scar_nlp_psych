@@ -1,0 +1,35 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn,epoch
+0,0.8889005184173584,0.6043925285339355,0.707317590713501,0.0456349216401577,0.31081080436706543,0.8979743123054504,0.07958477735519409,0.0,0.0456349216401577,0.9880966544151306,46.0,962.0,8467.0,102.0,10.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 100
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_PSYCHIATRY_12
+table: see_psych
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+max_tokens: 512
+lr: 0.001
+weight_decay: 0.0
+batch_size: 8
+pretrained_dir: C:\Users\jjnunez\PycharmProjects\shared_data\models
+pretrained_file: bert-base-uncased
+hparams_file: None
+count_tokens: False
+device: cuda:0
+run_name: BERT_20230216-0546
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12\BERT

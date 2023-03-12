@@ -1,0 +1,39 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn
+0,0.7242351174354553,0.7139278054237366,0.7831351161003113,0.411576509475708,0.6960157155990601,0.7318398952484131,0.5172728896141052,0.8948352932929993,0.41157649796393253,0.8993321387848183,1415.0,2023.0,5521.0,618.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 100
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_SOCIALWORK_12
+table: see_counselling
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+mode: rand
+output_channel: 500
+words_dim: 300
+embed_dim: 300
+dropout: 0.85
+lr: 5e-05
+weight_decay: 0.0
+pretrained_dir: C:\Users\jjnunez\PycharmProjects\hedwig-data\embeddings\word2vec
+pretrained_file: GoogleNews-vectors-negative300.txt
+batch_size: 16
+device: cuda:0
+target_classes: 1
+vocab_size: 22338
+run_name: CNN_20230216-1404
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12\CNN

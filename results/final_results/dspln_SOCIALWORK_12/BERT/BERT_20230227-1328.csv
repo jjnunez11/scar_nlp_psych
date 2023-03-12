@@ -1,0 +1,35 @@
+epoch,acc,bal_acc,auc,prec,rec,spec,f1,loss,ppv,npv,tp,fp,tn,fn,epoch
+0,0.6265009641647339,0.6549460291862488,0.7167359590530396,0.32486388087272644,0.7043777704238892,0.6055142879486084,0.44465142488479614,0.0,0.32486388087272644,0.8837299346923828,1432.0,2976.0,4568.0,601.0,22.0
+
+Run Arguments:
+cuda: True
+gpu: 0
+cuda_block: False
+epochs: 100
+seed: 3435
+patience: 5
+monitor_metric: bal_acc
+log_every: 10
+imbalance_fix: loss_weight
+data_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_data\data
+results_dir: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results
+data_version: ppv4
+target: dspln_SOCIALWORK_12
+table: see_counselling
+table_extra: 
+dataset: SCAR
+debug: False
+eval_only: False
+model_file: None
+max_tokens: 512
+lr: 5e-05
+weight_decay: 0.01
+batch_size: 8
+pretrained_dir: C:\Users\jjnunez\PycharmProjects\shared_data\models
+pretrained_file: bert-base-uncased
+hparams_file: None
+count_tokens: False
+device: cuda:0
+run_name: BERT_20230227-1328
+results_dir_target: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12
+results_dir_model: C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_SOCIALWORK_12\BERT
