@@ -114,7 +114,7 @@ class ResultsGenerator(object):
                     df_model_a = df_metric[df_metric["Model"] == model_a][metric]
                     df_model_b = df_metric[df_metric["Model"] == model_b][metric]
                     p_value = ttest_rel(df_model_a, df_model_b).pvalue
-                    f.write(f"{self.horiz_sp}{p_value.round(3)}")
+                    f.write(f"{self.horiz_sp}{p_value.round(6)}")
                 f.write(self.vert_sp)
 
         f.close()

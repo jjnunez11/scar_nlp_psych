@@ -1,12 +1,12 @@
 Balanced Accuracy
 Model	BoW	CNN	LSTM	BERT
-BoW	nan	0.0	0.0	0.001
-CNN	0.0	nan	0.218	0.0
-LSTM	0.0	0.218	nan	0.0
-BERT	0.001	0.0	0.0	nan
+BoW	nan	1e-05	2e-06	0.000636
+CNN	1e-05	nan	0.218143	5.4e-05
+LSTM	2e-06	0.218143	nan	3.9e-05
+BERT	0.000636	5.4e-05	3.9e-05	nan
 AUC
 Model	BoW	CNN	LSTM	BERT
-BoW	nan	0.0	0.001	0.0
-CNN	0.0	nan	0.001	0.0
-LSTM	0.001	0.001	nan	0.0
-BERT	0.0	0.0	0.0	nan
+BoW	nan	3.2e-05	0.000577	1.2e-05
+CNN	3.2e-05	nan	0.00098	4e-06
+LSTM	0.000577	0.00098	nan	9e-06
+BERT	1.2e-05	4e-06	9e-06	nan
