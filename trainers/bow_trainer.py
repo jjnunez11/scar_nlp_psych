@@ -128,6 +128,8 @@ class BoWTrainer(object):
 
     def eval_only(self, test_data):
 
+        self.start = time.time()
+
         # Set Pandas setting to allow more columns to print out epoch results
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', 100)
@@ -150,6 +152,4 @@ class BoWTrainer(object):
         # Print Epoch Results so far
         print_from_history(test_history, -1, self.start, 1, 1)
 
-        self.start = time.time()
-
-        return test_history
+        return test_history, self.start

@@ -163,6 +163,7 @@ class NeuralTrainer(object):
                 test_loss = self.loss_fn(test_outputs, targets)
 
                 # get prediction and labels
+                # print(f'Here are the test outputs: {test_outputs}')
                 test_predictions = torch.sigmoid(test_outputs)
                 test_predicted_labels = torch.cat((test_predicted_labels, test_predictions))
                 test_target_labels = torch.cat((test_target_labels, test_targets.int()))

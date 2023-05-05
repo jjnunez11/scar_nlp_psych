@@ -44,8 +44,8 @@ def neural_main(model_name, model_class, model_trainer, args):
         scar = SCAR(args.batch_size, args.data_dir, args.target)
         target_perc = scar.get_class_balance()  # Percentage of targets = 1
         pos_weight = (1 - target_perc) / target_perc
-        print(f"Weighting our Loss Function to Balance Target Classes\n"
-              f"Training examples with target=1 will get a factor of: {round(pos_weight, 3)}")
+        # print(f"Weighting our Loss Function to Balance Target Classes\n"
+        #      f"Training examples with target=1 will get a factor of: {round(pos_weight, 3)}")
         loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
     elif args.imbalance_fix == 'none':
         loss_fn = nn.BCEWithLogitsLoss()

@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # Train and Evaluate Model
     trainer = BoWTrainer(config=config, class_weight=class_weight)
     if eval_only:
-        test_history = trainer.eval_only(test_data)
+        test_history, start_time = trainer.eval_only(test_data)
     else:
         train_history, dev_history, test_history, start_time = trainer.fit(train_data, dev_data, test_data,
                                                                                config.epochs)
