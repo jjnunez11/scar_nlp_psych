@@ -39,8 +39,11 @@ def transformer_main(model_name, model_class, model_dataset, args):
         os.environ['CUDA_LAUNCH_BLOCKING'] = "0"
 
     # Loss and optimizer
-    if config.imbalance_fix == 'loss_weight':
-        dataset = model_dataset(config)
+    if eval_only:
+        loss_fn = nn.BCEWithLogitsLoss()  # Not actually needed in eval_only
+        dataset = model_dataset(config, eval_only)
+    elif config.imbalance_fix == 'loss_weight':
+        dataset = model_dataset(config, eval_only)
         target_perc = dataset.get_class_balance()  # Percentage of targets = 1
         pos_weight = (1 - target_perc) / target_perc
         print(f"Weighting our Loss Function to Balance Target Classes\n"
@@ -50,7 +53,7 @@ def transformer_main(model_name, model_class, model_dataset, args):
         loss_fn = nn.BCEWithLogitsLoss()
     elif config.imbalance_fix == 'undersampling':
         loss_fn = nn.BCEWithLogitsLoss()
-        dataset = model_dataset(config, undersample=True)
+        dataset = model_dataset(config, eval_only, undersample=True)
     else:
         raise Exception("Invalid method to fix the class imbalance provided, or not yet implemented")
 
@@ -60,7 +63,11 @@ def transformer_main(model_name, model_class, model_dataset, args):
         sys.exit()
 
     # Instantiate our Model
-    steps_per_epoch = dataset.get_n_training() / config.batch_size
+    if eval_only:
+        steps_per_epoch = dataset.get_n_test() / config.batch_size
+    else:
+        steps_per_epoch = dataset.get_n_training() / config.batch_size
+
     model = model_class(config, loss_fn, steps_per_epoch)
 
     # Make and create if needed dir for loggers to log to

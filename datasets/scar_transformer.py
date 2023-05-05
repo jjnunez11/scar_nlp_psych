@@ -45,58 +45,83 @@ class SCARTransformer(pl.LightningDataModule):
     DATASET_NAME = "SCAR"
     NUM_CLASSES = 1
 
-    def __init__(self, config, tokenizer, undersample):
+    def __init__(self, config, tokenizer, eval_only, undersample):
         super().__init__()
         self.batch_size = config.batch_size
         self.max_len = config.max_tokens
         self.device = config.device
 
-        if undersample:
-            self.data_dir = os.path.join(config.data_dir, config.target + "_undersampled")
-            self.n_lines['train'] = 1815
-        else:
+        if eval_only:
             self.data_dir = os.path.join(config.data_dir, config.target)
 
-        self.f_train = os.path.join(self.data_dir, 'train.tsv')
-        self.f_dev = os.path.join(self.data_dir, 'dev.tsv')
-        self.f_test = os.path.join(self.data_dir, 'test.tsv')
+            self.f_test = os.path.join(self.data_dir, 'test.tsv')
 
-        with open(self.f_train) as f:
-            self.n_train = len(f.readlines())
-        f.close()
-        with open(self.f_dev) as f:
-            self.n_dev = len(f.readlines())
-        f.close()
-        with open(self.f_test) as f:
-            self.n_test = len(f.readlines())
-        f.close()
-        self.n_lines = {'train': self.n_train,
-                        'dev': self.n_dev,
-                        'test': self.n_test}
+            with open(self.f_test) as f:
+                self.n_test = len(f.readlines())
+            f.close()
+            self.n_lines = {'test': self.n_test}
 
-        self.debug = config.debug
+            self.debug = config.debug
 
-        pretrained_model_path = os.path.join(config.pretrained_dir, config.pretrained_file)
-        self.tokenizer = tokenizer.from_pretrained(pretrained_model_path)
+            pretrained_model_path = os.path.join(config.pretrained_dir, config.pretrained_file)
+            self.tokenizer = tokenizer.from_pretrained(pretrained_model_path)
 
-        # Clean and prepare the raw data
-        self.raw_x_train, self.raw_y_train = self.clean_data(self.f_train)
-        self.raw_x_dev, self.raw_y_dev = self.clean_data(self.f_dev)
-        self.raw_x_test, self.raw_y_test = self.clean_data(self.f_test)
+            # Clean and prepare the raw data
+            self.raw_x_test, self.raw_y_test = self.clean_data(self.f_test)
 
-        # Tokenize up to max length, and put into a PyTorch Dataset
-        self.train_dataset = SCARTransformerDataset(consults=self.raw_x_train,
-                                                    labels=self.raw_y_train,
-                                                    tokenizer=self.tokenizer,
-                                                    max_len=self.max_len)
-        self.dev_dataset = SCARTransformerDataset(consults=self.raw_x_dev,
-                                                  labels=self.raw_y_dev,
-                                                  tokenizer=self.tokenizer,
-                                                  max_len=self.max_len)
-        self.test_dataset = SCARTransformerDataset(consults=self.raw_x_test,
-                                                   labels=self.raw_y_test,
-                                                   tokenizer=self.tokenizer,
-                                                   max_len=self.max_len)
+            # Tokenize up to max length, and put into a PyTorch Dataset
+            self.test_dataset = SCARTransformerDataset(consults=self.raw_x_test,
+                                                       labels=self.raw_y_test,
+                                                       tokenizer=self.tokenizer,
+                                                       max_len=self.max_len)
+        else:
+
+            if undersample:
+                self.data_dir = os.path.join(config.data_dir, config.target + "_undersampled")
+                self.n_lines['train'] = 1815
+            else:
+                self.data_dir = os.path.join(config.data_dir, config.target)
+
+            self.f_train = os.path.join(self.data_dir, 'train.tsv')
+            self.f_dev = os.path.join(self.data_dir, 'dev.tsv')
+            self.f_test = os.path.join(self.data_dir, 'test.tsv')
+
+            with open(self.f_train) as f:
+                self.n_train = len(f.readlines())
+            f.close()
+            with open(self.f_dev) as f:
+                self.n_dev = len(f.readlines())
+            f.close()
+            with open(self.f_test) as f:
+                self.n_test = len(f.readlines())
+            f.close()
+            self.n_lines = {'train': self.n_train,
+                            'dev': self.n_dev,
+                            'test': self.n_test}
+
+            self.debug = config.debug
+
+            pretrained_model_path = os.path.join(config.pretrained_dir, config.pretrained_file)
+            self.tokenizer = tokenizer.from_pretrained(pretrained_model_path)
+
+            # Clean and prepare the raw data
+            self.raw_x_train, self.raw_y_train = self.clean_data(self.f_train)
+            self.raw_x_dev, self.raw_y_dev = self.clean_data(self.f_dev)
+            self.raw_x_test, self.raw_y_test = self.clean_data(self.f_test)
+
+            # Tokenize up to max length, and put into a PyTorch Dataset
+            self.train_dataset = SCARTransformerDataset(consults=self.raw_x_train,
+                                                        labels=self.raw_y_train,
+                                                        tokenizer=self.tokenizer,
+                                                        max_len=self.max_len)
+            self.dev_dataset = SCARTransformerDataset(consults=self.raw_x_dev,
+                                                      labels=self.raw_y_dev,
+                                                      tokenizer=self.tokenizer,
+                                                      max_len=self.max_len)
+            self.test_dataset = SCARTransformerDataset(consults=self.raw_x_test,
+                                                       labels=self.raw_y_test,
+                                                       tokenizer=self.tokenizer,
+                                                       max_len=self.max_len)
 
     def clean_data(self, f):
         """
@@ -183,3 +208,6 @@ class SCARTransformer(pl.LightningDataModule):
 
     def get_n_training(self):
         return len(self.raw_y_train)
+
+    def get_n_test(self):
+        return len(self.raw_y_test)
