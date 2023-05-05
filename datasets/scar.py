@@ -14,52 +14,76 @@ class SCAR:
     DATASET_NAME = "SCAR"
     NUM_CLASSES = 1
 
-    def __init__(self, batch_size, data_root, target, undersample=False, device=torch.device('cuda:0'), min_freq=10):
+    def __init__(self, batch_size, data_root, target, eval_only, undersample=False, device=torch.device('cuda:0'),
+                 min_freq=10):
         self.batch_size = batch_size
         self.device = device
 
-        if undersample:
-            self.data_dir = os.path.join(data_root, target + "_undersampled")
-            self.n_lines['train'] = 1815
-            raise NotImplementedError("Need to fix undersampling")
-        else:
+        if eval_only:
             self.data_dir = os.path.join(data_root, target)
+            self.vocab = torch.load(os.path.join(self.data_dir, 'scar_neural_vocab.pth'))
 
-        self.f_train = os.path.join(self.data_dir, 'train.tsv')
-        self.f_dev = os.path.join(self.data_dir, 'dev.tsv')
-        self.f_test = os.path.join(self.data_dir, 'test.tsv')
-        self.f_dict = {'train': self.f_train,
-                       'dev': self.f_dev,
-                       'test': self.f_test}
+            self.f_test = os.path.join(self.data_dir, 'test.tsv')
+            self.f_dict = {'train': None,
+                           'dev': None,
+                           'test': self.f_test}
 
-        # Count number of lines in all of the data splits
-        with open(self.f_train) as f:
-            self.n_train = len(f.readlines())
-        f.close()
-        with open(self.f_dev) as f:
-            self.n_dev = len(f.readlines())
-        f.close()
-        with open(self.f_test) as f:
-            self.n_test = len(f.readlines())
-        f.close()
+            # Count number of lines in all of the data splits
+            with open(self.f_test) as f:
+                self.n_test = len(f.readlines())
+            f.close()
 
-        # Create a dict with the lengths
-        self.n_lines = {'train': self.n_train,
-                        'dev': self.n_dev,
-                        'test': self.n_test}
+            # Create a dict with the lengths
+            self.n_lines = {'train': 0,
+                            'dev': 0,
+                            'test': self.n_test}
 
-        if undersample:
-            self.n_lines['train'] = 1815
-            raise NotImplementedError
+            # Make iters of the input test text files
+            self.test_iter = self.create_iter(split='test')
+        else:
 
-        # Make iters of the input text files
-        self.train_iter, self.dev_iter, self.test_iter = self.create_iter(split=('train', 'dev', 'test'))
+            if undersample:
+                self.data_dir = os.path.join(data_root, target + "_undersampled")
+                self.n_lines['train'] = 1815
+                raise NotImplementedError("Need to fix undersampling")
+            else:
+                self.data_dir = os.path.join(data_root, target)
 
-        # Convert training set to iter of tokens
-        self.train_token_iter = self.get_scar_tokens(self.create_iter(split='train'))
+            self.f_train = os.path.join(self.data_dir, 'train.tsv')
+            self.f_dev = os.path.join(self.data_dir, 'dev.tsv')
+            self.f_test = os.path.join(self.data_dir, 'test.tsv')
+            self.f_dict = {'train': self.f_train,
+                           'dev': self.f_dev,
+                           'test': self.f_test}
 
-        # Build vocabulary from tokens
-        self.vocab = self.build_scar_vocab(min_freq)
+            # Count number of lines in all of the data splits
+            with open(self.f_train) as f:
+                self.n_train = len(f.readlines())
+            f.close()
+            with open(self.f_dev) as f:
+                self.n_dev = len(f.readlines())
+            f.close()
+            with open(self.f_test) as f:
+                self.n_test = len(f.readlines())
+            f.close()
+
+            # Create a dict with the lengths
+            self.n_lines = {'train': self.n_train,
+                            'dev': self.n_dev,
+                            'test': self.n_test}
+
+            if undersample:
+                self.n_lines['train'] = 1815
+                raise NotImplementedError
+
+            # Make iters of the input text files
+            self.train_iter, self.dev_iter, self.test_iter = self.create_iter(split=('train', 'dev', 'test'))
+
+            # Convert training set to iter of tokens
+            self.train_token_iter = self.get_scar_tokens(self.create_iter(split='train'))
+
+            # Build vocabulary from tokens
+            self.vocab = self.build_scar_vocab(min_freq)
 
     def get_vocab_size(self):
         return len(self.vocab)
@@ -72,6 +96,9 @@ class SCAR:
         unknown_token = '<unk>'
         vocab.insert_token(unknown_token, 0)
         vocab.set_default_index(vocab[unknown_token])
+
+        # Export so can be used in evaluation-only mode
+        torch.save(vocab, os.path.join(self.data_dir, 'scar_neural_vocab.pth'))
 
         return vocab
 

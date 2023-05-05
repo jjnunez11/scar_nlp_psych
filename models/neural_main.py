@@ -40,19 +40,21 @@ def neural_main(model_name, model_class, model_trainer, args):
         print("Using a CPU, sad!")
 
     # Loss and optimizer
-    if args.imbalance_fix == 'loss_weight':
-        scar = SCAR(args.batch_size, args.data_dir, args.target)
+
+    if eval_only:
+        loss_fn = nn.BCEWithLogitsLoss()  # Does not matter, we're only evaluating
+        scar = SCAR(args.batch_size, args.data_dir, args.target, eval_only=eval_only)
+    elif args.imbalance_fix == 'loss_weight':
+        scar = SCAR(args.batch_size, args.data_dir, args.target, eval_only=eval_only)
         target_perc = scar.get_class_balance()  # Percentage of targets = 1
         pos_weight = (1 - target_perc) / target_perc
-        # print(f"Weighting our Loss Function to Balance Target Classes\n"
-        #      f"Training examples with target=1 will get a factor of: {round(pos_weight, 3)}")
         loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
     elif args.imbalance_fix == 'none':
         loss_fn = nn.BCEWithLogitsLoss()
-        scar = SCAR(args.batch_size, args.data_dir, args.target)
+        scar = SCAR(args.batch_size, args.data_dir, args.target, eval_only=eval_only)
     elif args.imbalance_fix == 'undersampling':
         loss_fn = nn.BCEWithLogitsLoss()
-        scar = SCAR(args.batch_size, args.data_dir, args.target, undersample=True)
+        scar = SCAR(args.batch_size, args.data_dir, args.target, eval_only=eval_only, undersample=True)
     else:
         raise Exception("Invalid method to fix the class imbalance provided, or not yet implemented")
 
@@ -71,11 +73,6 @@ def neural_main(model_name, model_class, model_trainer, args):
     if not os.path.exists(config.results_dir_model):
         os.mkdir(config.results_dir_model)
 
-    # Load the data
-    train_dataloader = scar.train_dataloader()
-    dev_dataloader = scar.dev_dataloader()
-    test_dataloader = scar.test_dataloader()
-
     # Instantiate our Model
     model = model_class(config)
 
@@ -84,8 +81,12 @@ def neural_main(model_name, model_class, model_trainer, args):
 
     # Train and Evaluate Model
     if eval_only:
+        test_dataloader = scar.test_dataloader()
         test_history, start = trainer.eval_only(model_class, test_dataloader)
     else:
+        train_dataloader = scar.train_dataloader()
+        dev_dataloader = scar.dev_dataloader()
+        test_dataloader = scar.test_dataloader()
         train_history, dev_history, test_history, start_time = trainer.fit(train_dataloader,
                                                                            dev_dataloader,
                                                                            test_dataloader)
