@@ -12,42 +12,80 @@ import bz2
 
 
 class SCARBoW:
-    def __init__(self, config, undersample=False):
+    def __init__(self, config, eval_only, undersample=False):
         self.max_tokens = config.max_tokens
         self.use_idf = config.use_idf
         self.data_dir = os.path.join(config.data_dir, config.target)
 
-        if undersample:
-            self.data_dir = os.path.join(config.data_dir, config.target + "_undersampled")
-            # self.NUM_LINES['train'] = 1815
-        else:
+        if eval_only:
             self.data_dir = os.path.join(config.data_dir, config.target)
 
-        self.train_file = os.path.join(self.data_dir, f'train_bow_{self.max_tokens}.csv')
-        self.dev_file = os.path.join(self.data_dir, f'dev_bow_{self.max_tokens}.csv')
-        self.test_file = os.path.join(self.data_dir, f'test_bow_{self.max_tokens}.csv')
+            self.test_file = os.path.join(self.data_dir, f'test_bow_{self.max_tokens}.csv')
 
-        if not (os.path.exists(self.train_file) and
-                os.path.exists(self.dev_file) and
-                os.path.exists(self.test_file)):
-            # If files don't exist, generate anew
-            # Instantiate data frames to store the data
-            self.raw_train_data = pd.DataFrame(columns=['label', 'text', 'vector'])
-            self.raw_dev_data = pd.DataFrame(columns=['label', 'text', 'vector'])
-            self.raw_test_data = pd.DataFrame(columns=['label', 'text', 'vector'])
+            if not (os.path.exists(self.test_file)):
+                # If file don't exist, generate anew
+                # Instantiate data frames to store the data
+                self.raw_test_data = pd.DataFrame(columns=['label', 'text', 'vector'])
 
-            # Read the files to extract target, and tokenize the text
-            self.raw_train_data = self.read_labels_and_tokens('train')
-            self.raw_dev_data = self.read_labels_and_tokens('dev')
-            self.raw_test_data = self.read_labels_and_tokens('test')
+                # Read the files to extract target, and tokenize the text
+                self.raw_test_data = self.read_labels_and_tokens('test')
 
-            # Using the tokens, make BoW vectors, using TF or TF-IDR, and then print out
-            self.vectorize_tokens()
+                # Using the tokens, make BoW vectors, using TF or TF-IDR, and then print out
+                self.load_to_vectorize_tokens()
 
-        # Read in data
-        self.train_data = pd.read_csv(self.train_file)
-        self.dev_data = pd.read_csv(self.dev_file)
-        self.test_data = pd.read_csv(self.test_file)
+            # Read in data
+            self.test_data = pd.read_csv(self.test_file)
+
+        else:
+            if undersample:
+                self.data_dir = os.path.join(config.data_dir, config.target + "_undersampled")
+                # self.NUM_LINES['train'] = 1815
+            else:
+                self.data_dir = os.path.join(config.data_dir, config.target)
+
+            self.train_file = os.path.join(self.data_dir, f'train_bow_{self.max_tokens}.csv')
+            self.dev_file = os.path.join(self.data_dir, f'dev_bow_{self.max_tokens}.csv')
+            self.test_file = os.path.join(self.data_dir, f'test_bow_{self.max_tokens}.csv')
+
+            if not (os.path.exists(self.train_file) and
+                    os.path.exists(self.dev_file) and
+                    os.path.exists(self.test_file)):
+                # If files don't exist, generate anew
+                # Instantiate data frames to store the data
+                self.raw_train_data = pd.DataFrame(columns=['label', 'text', 'vector'])
+                self.raw_dev_data = pd.DataFrame(columns=['label', 'text', 'vector'])
+                self.raw_test_data = pd.DataFrame(columns=['label', 'text', 'vector'])
+
+                # Read the files to extract target, and tokenize the text
+                self.raw_train_data = self.read_labels_and_tokens('train')
+                self.raw_dev_data = self.read_labels_and_tokens('dev')
+                self.raw_test_data = self.read_labels_and_tokens('test')
+
+                # Using the tokens, make BoW vectors, using TF or TF-IDR, and then print out
+                self.vectorize_tokens()
+
+            # Read in data
+            self.train_data = pd.read_csv(self.train_file)
+            self.dev_data = pd.read_csv(self.dev_file)
+            self.test_data = pd.read_csv(self.test_file)
+
+    def load_to_vectorize_tokens(self):
+        # Load vectorizer object for interpretation
+        vectorizer_filename = os.path.join(self.data_dir, f"vectorizer_{self.max_tokens}.bz2")
+        with bz2.BZ2File(vectorizer_filename, 'r') as f:
+            vectorizer = pickle.load(f)
+
+        test_counts = vectorizer.transform(self.raw_test_data['text'])
+
+        # Fit TF-IDF-er (Term Frequency times inverse document frequency) on training data,
+        # and then use to transform for dev and test
+        tfidf_transformer_f = os.path.join(self.data_dir, f"transformer_{self.max_tokens}.bz2")
+        with bz2.BZ2File(tfidf_transformer_f, 'r') as f:
+            tfidf_transformer = pickle.load(f)
+        self.raw_test_data['vector'] = tfidf_transformer.transform(test_counts).todense().tolist()
+
+        # Save to csv for loading
+        self.raw_test_data.to_csv(self.test_file)
 
     def vectorize_tokens(self):
         # Fit Vectorizer to training data, and then use to transform for dev and test
@@ -67,6 +105,9 @@ class SCARBoW:
         # Fit TF-IDF-er (Term Frequency times inverse document frequency) on training data,
         # and then use to transform for dev and test
         tfidf_transformer = TfidfTransformer(use_idf=self.use_idf).fit(train_counts)
+        tfidf_transformer_f = os.path.join(self.data_dir, f"transformer_{self.max_tokens}.bz2")
+        with bz2.BZ2File(tfidf_transformer_f, 'w') as f:
+            pickle.dump(tfidf_transformer, f)
         self.raw_train_data['vector'] = tfidf_transformer.transform(train_counts).todense().tolist()
         self.raw_dev_data['vector'] = tfidf_transformer.transform(dev_counts).todense().tolist()
         self.raw_test_data['vector'] = tfidf_transformer.transform(test_counts).todense().tolist()

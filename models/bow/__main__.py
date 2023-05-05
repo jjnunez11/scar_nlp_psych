@@ -8,8 +8,6 @@ import warnings
 import datetime
 
 if __name__ == '__main__':
-    print("Training and evaluating a BoW model")
-
     args = get_args()
 
     # Setup config
@@ -25,7 +23,10 @@ if __name__ == '__main__':
         print(f"Training and evaluating a {model_name} model")
 
     # Loss
-    if config.imbalance_fix == 'loss_weight':
+    if eval_only:
+        class_weight = None
+        scar_bow = SCARBoW(args, eval_only)
+    elif config.imbalance_fix == 'loss_weight':
         class_weight = 'balanced'
 
         if config.classifier == "gbdt":
@@ -36,19 +37,14 @@ if __name__ == '__main__':
             config_dict = vars(config)
             config_dict['imbalance_fix'] = 'none'
 
-        scar_bow = SCARBoW(args)  # args.batch_size, args.data_dir, args.target)
+        scar_bow = SCARBoW(args, eval_only)  # args.batch_size, args.data_dir, args.target)
     elif args.imbalance_fix == 'undersampling':
         class_weight = None
-        scar_bow = SCARBoW(args, undersample=True)
+        scar_bow = SCARBoW(args, eval_only, undersample=True)
     elif config.imbalance_fix == 'none':
         class_weight = None
     else:
         raise Exception("Invalid method to fix the class imbalance provided, or not yet implemented")
-
-    # Load the data
-    train_data = scar_bow.get_train_data()
-    dev_data = scar_bow.get_dev_data()
-    test_data = scar_bow.get_test_data()
 
     # Make directories for results if not already there
     config.results_dir_target = os.path.join(config.results_dir, config.target)  # dir for a targets results
@@ -62,8 +58,12 @@ if __name__ == '__main__':
     # Train and Evaluate Model
     trainer = BoWTrainer(config=config, class_weight=class_weight)
     if eval_only:
+        test_data = scar_bow.get_test_data()
         test_history, start_time = trainer.eval_only(test_data)
     else:
+        train_data = scar_bow.get_train_data()
+        dev_data = scar_bow.get_dev_data()
+        test_data = scar_bow.get_test_data()
         train_history, dev_history, test_history, start_time = trainer.fit(train_data, dev_data, test_data,
                                                                                config.epochs)
     evaluator = Evaluator("BoW", test_history, config, start_time)
