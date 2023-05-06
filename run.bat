@@ -162,9 +162,3 @@
 
 :: call .\bats\tables\see_psych.bat
 :: call .\bats\tables\see_counselling.bat
-
-:: ensure still can train
-:: python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "dev_set_test"  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001
-
-python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "dbl_chk_test_eval_only"  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --eval_only --model-file "C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\final_results\dspln_PSYCHIATRY_12\CNN\CNN_20230214-0927.pt"
-
