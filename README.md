@@ -48,20 +48,53 @@ graphic card compatibility, as this varies depending on CUDA and version of PyTo
 
 1. Ensure Python is installed, including required packages. 
 2. Clone the Github repository, or extract a .zip, of the codebase. 
-3. If using BERT as in our work, download the large language model [bert-based-uncased](workhttps://huggingface.co/bert-base-uncased)
+3. If using BERT as in our work, download the large language model [bert-based-uncased](https://huggingface.co/bert-base-uncased)
 3. Run commands as per below. Directory and file paths can be specified with the command-line, use `-h` for help on arguments, e.g.
 
 ```
 python -m models.cnn -h
 ```
 
-We expect this to take no more than a few minutes. 
+We expect this to take no more than a few minutes, besides downloading the BERT files.  
 
-## Training/Fine-tuning NLP Models
+## Demo
+
+The [demo](./demo) folder contains  toy data and the files needed to run our pretrained models. 
+
+If using BERT, please ensure the pretrained BERT files are downloaded, as above, and put into [correct folder for the demo](./demo/bert-base-uncased)
+
+The [demo.bat](./demo.bat) file will evaluate one of each of our models on the toy data, for both psychiatry and counsellor predictions. 
+
+Alternatively, you can run each as the following:
+
+Evaluating previously trained models to predict seeing a psychiatrist within 12 months using toy data
+```
+python -m models.bow --target "dspln_PSYCHIATRY_12" --table "demo" --eval_only --model-file ".\results\final_results\dspln_PSYCHIATRY_12\BoW\BoW_20230220-1206_e0.pbz2" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.cnn  --target "dspln_PSYCHIATRY_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_PSYCHIATRY_12\CNN\CNN_20230214-0927.pt" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.lstm --target "dspln_PSYCHIATRY_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_PSYCHIATRY_12\LSTM\LSTM_20230214-1515.pt" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "demo" --eval_only --model-file ".\results\final_results\dspln_PSYCHIATRY_12\BERT\default\version_2\BERT--epoch=4_val_bal_val_bal=0.72.ckpt" --data-dir ".\demo" --results-dir ".\demo" --pretrained_dir ".\demo"
+```
+Evaluating previously trained models to predict seeing a counsellor within 12 months using toy data
+```
+python -m models.bow --target "dspln_SOCIALWORK_12" --table "demo" --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\BoW\BoW_20230220-1316_e0.pbz2" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.cnn  --target "dspln_SOCIALWORK_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\CNN\CNN_20230216-1157.pt" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.lstm --target "dspln_SOCIALWORK_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\LSTM\LSTM_20230216-1518.pt" --data-dir ".\demo" --results-dir ".\demo"
+python -m models.bert --target "dspln_SOCIALWORK_12" --table "demo" --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\BERT\default\version_0\BERT--epoch=20_val_bal_val_bal=0.66.ckpt" --data-dir ".\demo" --results-dir ".\demo" --pretrained_dir ".\demo"
+```
+The expected outputs are located in `./demo/dspln_PSYCHIATRY_12/dspln_PSYCHIATRY_12_results.csv` and `./demo/dspln_SOCIALWORK_12/dspln_SOCIALWORK_12_results.csv` 
+
+These should all run in a minute or two. 
+
+Please see the next section regarding other arguments and parameters that can be changed. 
+
+## Instructions for General Use
 
 Models are ran as python modules. Arguments can be based through the command line. E.g.
 
 ```python -m cnn --target "dspln_PSYCHIATRY_12" --batch-size 16```
+
+The possible arguments can be found in the `args.py` files located in `models`, and within each model's sub-folder.
+Alternatively, you can use the `-h` command as above. 
 
 See [models](./models) for the various deployed models. 
 
@@ -78,15 +111,19 @@ as found in the [bats](./bats) folder. Sorry, I had to use Windows, as IT didn't
 
 To use BERT, please first download bert-base-uncased from [HuggingFace](https://huggingface.co/bert-base-uncased/tree/main)
 The pytorch_model, config, and vocab files should be placed in a folder named bert-base-uncased, whose directory
-in provided in the argument/default argument. 
-
-# Visualizing and Understanding Models
+in provided in the argument/default argument. If evaluating previously trained BERT models, you may need to change the backup
+directory for the pretrained downloaded BERT models, located in `/models/bert/model.py` line 13. 
 
 See the [viz](./viz) folder for jupyter notebooks used to visualize and understand the models.
 
 Thank you for your interest in our work! Please don't hesitate to reach out - John-Jose, johnjose.nunez@bccancer.bc.ca
 
-# Licence
+## Reproduction Instructions
+
+To reproduce the final results presented in our work, you will need a copy of our raw data, and then can use the .bat
+files within `/bats/tables/see_psych.bat` and `/bats/tables/see_counselling.bat` for the specific arguments provided. 
+
+## Licence
 
 Copyright (C) 2023 John-Jose Nunez
 
