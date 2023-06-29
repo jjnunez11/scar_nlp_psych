@@ -1,4 +1,6 @@
 import os
+import warnings
+
 import pandas as pd
 from datasets.scar import SCAR
 from nltk.tokenize import word_tokenize
@@ -16,6 +18,8 @@ class SCARBoW:
         self.max_tokens = config.max_tokens
         self.use_idf = config.use_idf
         self.data_dir = os.path.join(config.data_dir, config.target)
+
+        self.vectorizer = None
 
         if eval_only:
             self.data_dir = os.path.join(config.data_dir, config.target)
@@ -89,18 +93,18 @@ class SCARBoW:
 
     def vectorize_tokens(self):
         # Fit Vectorizer to training data, and then use to transform for dev and test
-        vectorizer = CountVectorizer(max_features=self.max_tokens,
+        self.vectorizer = CountVectorizer(max_features=self.max_tokens,
                                      tokenizer=StemTokenizer(),  # Tokenizes, stems, and remove stop words
                                      lowercase=True)
 
-        train_counts = vectorizer.fit_transform(self.raw_train_data['text'])
-        dev_counts = vectorizer.transform(self.raw_dev_data['text'])
-        test_counts = vectorizer.transform(self.raw_test_data['text'])
+        train_counts = self.vectorizer.fit_transform(self.raw_train_data['text'])
+        dev_counts = self.vectorizer.transform(self.raw_dev_data['text'])
+        test_counts = self.vectorizer.transform(self.raw_test_data['text'])
 
         # Save vectorizer object for interpretation
         vectorizer_filename = os.path.join(self.data_dir, f"vectorizer_{self.max_tokens}.bz2")
         with bz2.BZ2File(vectorizer_filename, 'w') as f:
-            pickle.dump(vectorizer, f)
+            pickle.dump(self.vectorizer, f)
 
         # Fit TF-IDF-er (Term Frequency times inverse document frequency) on training data,
         # and then use to transform for dev and test
@@ -166,6 +170,19 @@ class SCARBoW:
         stemmed_text = [stemmer.stem(word) for word in tokenized_text_wo_sw]
 
         return ' '.join(stemmed_text)  # Return as a single string.
+
+    def get_idx_of_token(self, token):
+
+        if self.vectorizer == None:
+            # Load vectorizer object for interpretation
+            vectorizer_filename = os.path.join(self.data_dir, f"vectorizer_{self.max_tokens}.bz2")
+            with bz2.BZ2File(vectorizer_filename, 'r') as f:
+                self.vectorizer = pickle.load(f)
+            warnings.warn('Loading an existent vectorizer for applying this rule based method; delete vectorized data'
+                          'to vectorize data from scratch.')
+
+        vocab_dict = self.vectorizer.vocabulary_  # dictionary with the tokens as keys, indeces as items
+        return vocab_dict[token]
 
     def get_train_data(self):
         return self.train_data
