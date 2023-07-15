@@ -38,6 +38,10 @@ def transformer_main(model_name, model_class, model_dataset, args):
     else:
         os.environ['CUDA_LAUNCH_BLOCKING'] = "0"
 
+    # If counting tokens, set max token length to a large number so we can count all
+    if config.count_tokens:
+        config.max_tokens = 100000
+
     # Loss and optimizer
     if eval_only:
         loss_fn = nn.BCEWithLogitsLoss()  # Not actually needed in eval_only

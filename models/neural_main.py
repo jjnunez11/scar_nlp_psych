@@ -1,10 +1,13 @@
 import os
+import sys
 from copy import deepcopy
 import torch.nn as nn
 import torch
 from evaluators.evaluator import Evaluator
 from datasets.scar import SCAR
 import datetime
+
+from tables.generate_n_token_fig import generate_n_token_fig
 
 
 def neural_main(model_name, model_class, model_trainer, args):
@@ -73,6 +76,8 @@ def neural_main(model_name, model_class, model_trainer, args):
     if not os.path.exists(config.results_dir_model):
         os.mkdir(config.results_dir_model)
 
+
+
     # Instantiate our Model
     model = model_class(config)
 
@@ -83,6 +88,10 @@ def neural_main(model_name, model_class, model_trainer, args):
     if eval_only:
         test_dataloader = scar.test_dataloader()
         test_history, start = trainer.eval_only(model_class, test_dataloader)
+    elif config.count_tokens: # If we're just running this to count tokens in our documents, exit this script and call relevant script
+        train_dataloader = scar.train_dataloader()
+        generate_n_token_fig(model_name, config, train_dataloader)
+        sys.exit()
     else:
         train_dataloader = scar.train_dataloader()
         dev_dataloader = scar.dev_dataloader()
