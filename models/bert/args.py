@@ -24,9 +24,5 @@ def get_args():
                         default=None,
                         help="Absolute path to a PyTorch lightning hparams.yaml file to load hparams from")
 
-    # Program Arguments
-    parser.add_argument('--count_tokens', default=False,
-                        help="Instead of training a model, just count the number of tokens in dataset")
-
     args = parser.parse_args()
     return args

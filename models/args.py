@@ -34,6 +34,8 @@ def get_args():
                         default=None,
                         help="Absolute path to a PyTorch model checkpoint (neural models) or pickle dump (BoW)"
                              " to load and evaluate")
-
+    # Program Arguments
+    parser.add_argument('--count_tokens', default=False,
+                        help="Instead of training a model, just count the number of tokens in dataset")
 
     return parser

@@ -2,6 +2,8 @@
 Script to determine the number of 
 
 """
+import torch
+
 from tables.table_globals import RESULT_TABLES_DIR
 import os
 import numpy as np
@@ -9,15 +11,11 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 
-def generate_n_token_fig(model_name, config, dataset):
-    f_stem = f'{model_name}_{config.target}_'
-    f_fig = os.path.join(RESULT_TABLES_DIR, f_stem + "n_token.png")
-    f_stats = os.path.join(RESULT_TABLES_DIR, f_stem + "n_token.txt")
-
+def count_bert_tokens(model_name, config, dataset):
     train_data = dataset.train_dataset
     n_consults = len(train_data)
 
-    # Uncomment below to speed up
+    # Uncomment below to speed up for testing
     # n_consults = 1000
 
     # token_counts = np.empty((n_consults, 10000))
@@ -32,6 +30,49 @@ def generate_n_token_fig(model_name, config, dataset):
         # _array
         n_tokens = len(token_array)
         token_counts[i] = n_tokens
+
+    generate_count_files(model_name, config, token_counts, n_consults)
+
+
+def trim_padding_from_np(arr, pad_number):
+    reversed_arr = arr[::-1]  # Reverse the array to simplify the process
+    index = 0
+
+    # Find the index of the first non-three element
+    for i in range(len(reversed_arr)):
+        if reversed_arr[i] != pad_number:
+            index = i
+            break
+
+    # Remove the consecutive threes from the end
+    trimmed_arr = arr[:-index] if index > 0 else arr
+
+    return trimmed_arr
+
+
+
+def count_neural_tokens(model_name, config, train_loader):
+    train_loader = list(train_loader)
+    n_consults = 0
+    token_counts = []
+
+    for batch, _ in tqdm(train_loader, leave=True, desc=f'Counting tokens for {model_name}'):
+        batch = torch.transpose(batch, 0, 1)
+        batch = batch.detach().cpu().numpy()
+        for consult in batch:
+            # Must remove the padding, which is token number 3
+            trimmed_consult = trim_padding_from_np(consult, 3)
+            token_counts.append(len(trimmed_consult))
+            n_consults = n_consults + 1
+
+    token_counts = np.array(token_counts)
+    generate_count_files(model_name, config, token_counts, n_consults)
+
+
+def generate_count_files(model_name, config, token_counts, n_consults):
+    f_stem = f'{model_name}_{config.target}_'
+    f_fig = os.path.join(RESULT_TABLES_DIR, f_stem + "n_token.png")
+    f_stats = os.path.join(RESULT_TABLES_DIR, f_stem + "n_token.txt")
 
     # Write some summary statistics
     f_stats = open(f_stats, 'w')

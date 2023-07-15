@@ -7,7 +7,7 @@ from evaluators.evaluator import Evaluator
 from datasets.scar import SCAR
 import datetime
 
-from tables.generate_n_token_fig import generate_n_token_fig
+from tables.generate_token_counts import count_neural_tokens
 
 
 def neural_main(model_name, model_class, model_trainer, args):
@@ -90,7 +90,7 @@ def neural_main(model_name, model_class, model_trainer, args):
         test_history, start = trainer.eval_only(model_class, test_dataloader)
     elif config.count_tokens: # If we're just running this to count tokens in our documents, exit this script and call relevant script
         train_dataloader = scar.train_dataloader()
-        generate_n_token_fig(model_name, config, train_dataloader)
+        count_neural_tokens(model_name, config, train_dataloader)
         sys.exit()
     else:
         train_dataloader = scar.train_dataloader()

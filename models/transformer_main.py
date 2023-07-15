@@ -8,7 +8,7 @@ from trainers.tf_trainer import TransformerTrainer, MyLogger
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import datetime
-from tables.generate_n_token_fig import generate_n_token_fig
+from tables.generate_token_counts import count_bert_tokens
 
 
 def transformer_main(model_name, model_class, model_dataset, args):
@@ -63,7 +63,7 @@ def transformer_main(model_name, model_class, model_dataset, args):
 
     # If we're just running this to count tokens in our documents, exit this script and call relevant script
     if config.count_tokens:
-        generate_n_token_fig(model_name, config, dataset)
+        count_bert_tokens(model_name, config, dataset)
         sys.exit()
 
     # Instantiate our Model
