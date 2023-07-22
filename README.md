@@ -59,7 +59,7 @@ We expect this to take no more than a few minutes, besides downloading the BERT 
 
 ## Demo
 
-The [demo](./demo) folder contains  toy data and the files needed to run our pretrained models. 
+The [demo](./demo) folder contains toy data and the files needed to run our pretrained models. The toy data have some resemblance to what the data we used looks like. There are four differnt consults, repeated to make a bit more data, and with labels varied to show metric variety. 
 
 If using BERT, please ensure the pretrained BERT files are downloaded, as above, and put into [correct folder for the demo](./demo/bert-base-uncased)
 
