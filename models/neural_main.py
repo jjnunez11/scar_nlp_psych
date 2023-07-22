@@ -76,8 +76,6 @@ def neural_main(model_name, model_class, model_trainer, args):
     if not os.path.exists(config.results_dir_model):
         os.mkdir(config.results_dir_model)
 
-
-
     # Instantiate our Model
     model = model_class(config)
 
@@ -90,7 +88,9 @@ def neural_main(model_name, model_class, model_trainer, args):
         test_history, start = trainer.eval_only(model_class, test_dataloader)
     elif config.count_tokens: # If we're just running this to count tokens in our documents, exit this script and call relevant script
         train_dataloader = scar.train_dataloader()
-        count_neural_tokens(model_name, config, train_dataloader)
+        dev_dataloader = scar.dev_dataloader()
+        test_dataloader = scar.test_dataloader()
+        count_neural_tokens(model_name, config, train_dataloader, dev_dataloader, test_dataloader)
         sys.exit()
     else:
         train_dataloader = scar.train_dataloader()

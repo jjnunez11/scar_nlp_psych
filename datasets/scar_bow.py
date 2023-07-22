@@ -193,6 +193,9 @@ class SCARBoW:
     def get_test_data(self):
         return self.test_data
 
+    def get_raw_train_data(self): # This is used for counting tokens in each document
+        return self.raw_train_data
+
 
 class StemTokenizer:
     def __init__(self):

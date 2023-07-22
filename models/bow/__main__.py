@@ -1,4 +1,5 @@
 import os
+import sys
 from copy import deepcopy
 from trainers.bow_trainer import BoWTrainer
 from evaluators.evaluator import Evaluator
@@ -6,6 +7,7 @@ from models.bow.args import get_args
 from datasets.scar_bow import SCARBoW
 import warnings
 import datetime
+from tables.generate_token_counts import count_bow_tokens
 
 if __name__ == '__main__':
     args = get_args()
@@ -26,6 +28,10 @@ if __name__ == '__main__':
     if eval_only:
         class_weight = None
         scar_bow = SCARBoW(args, eval_only)
+    elif config.count_tokens:
+        scar_bow = SCARBoW(args, False)
+        count_bow_tokens(model_name, config, scar_bow)
+        sys.exit()
     elif config.imbalance_fix == 'loss_weight':
         class_weight = 'balanced'
 
