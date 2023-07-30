@@ -47,7 +47,7 @@ def transformer_main(model_name, model_class, model_dataset, args):
         loss_fn = nn.BCEWithLogitsLoss()  # Not actually needed in eval_only
         dataset = model_dataset(config, eval_only)
     elif config.imbalance_fix == 'loss_weight':
-        dataset = model_dataset(config, eval_only)
+        dataset = model_dataset(config, eval_only, undersample=False)
         target_perc = dataset.get_class_balance()  # Percentage of targets = 1
         pos_weight = (1 - target_perc) / target_perc
         print(f"Weighting our Loss Function to Balance Target Classes\n"

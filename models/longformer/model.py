@@ -1,29 +1,31 @@
-# Inspired from https://towardsdatascience.com/bert-text-classification-using-pytorch-723dfb8b6b5b
-# and from: https://curiousily.com/posts/multi-label-text-classification-with-bert-and-pytorch-lightning/
+import os
+
 import torch.nn as nn
 import pytorch_lightning as pl
-from transformers import BertModel, AdamW, get_linear_schedule_with_warmup
-import os
+from transformers import LongformerModel, AdamW, get_linear_schedule_with_warmup
 from torchmetrics import Accuracy
 import torch
 from evaluators.calculate_metrics import calculate_metrics
 
 
-class BERT(pl.LightningModule):
-    BACKUP_PRETRAIN_MODEL_DIR = "./demo/"
+class Longformer(pl.LightningModule):
     # Set up the classifier
     def __init__(self, config, loss_fn, steps_per_epoch):
         super().__init__()
         self.save_hyperparameters()
         pretrained_model_path = os.path.join(config.pretrained_dir, config.pretrained_file)
         try:
-            self.bert = BertModel.from_pretrained(pretrained_model_path, return_dict=True)
+            self.longformer = LongformerModel.from_pretrained(pretrained_model_path,
+                                                              attention_window=config.attention_window
+                                                              )
         except OSError:
-            print(f"Cannot use pretrained model path originally used for models. Instead, using the backup model dir:"
-                  f" {self.BACKUP_PRETRAIN_MODEL_DIR} \n Please change this if you ve downloaded your pretrained BERT files elsewhere")
-            pretrained_model_path = os.path.join(self.BACKUP_PRETRAIN_MODEL_DIR, config.pretrained_file)
-            self.bert = BertModel.from_pretrained(pretrained_model_path, return_dict=True)
-        self.classifier = nn.Linear(self.bert.config.hidden_size, out_features=1)  # Change if multi-label
+            raise NotImplementedError("Have not implemented model backup")
+            # print(f"Cannot use pretrained model path originally used for models. Instead, using the backup model dir:"
+            #      f" {self.BACKUP_PRETRAIN_MODEL_DIR} \n Please change this if you ve downloaded your pretrained "
+            #      f"Longformer files elsewhere")
+            # pretrained_model_path = os.path.join(self.BACKUP_PRETRAIN_MODEL_DIR, config.pretrained_file)
+            # self.longformer = LongformerModel.from_pretrained(pretrained_model_path, return_dict=True)
+        self.classifier = nn.Linear(self.longformer.config.hidden_size, out_features=1)  # Change if multi-label
         self.steps_per_epoch = steps_per_epoch
         self.n_epochs = config.epochs
         self.lr = config.lr
@@ -44,7 +46,7 @@ class BERT(pl.LightningModule):
                                  multiclass=True)
 
     def forward(self, input_ids, attn_mask, labels=None):
-        output = self.bert(input_ids=input_ids, attention_mask=attn_mask)
+        output = self.longformer(input_ids=input_ids, attention_mask=attn_mask)
         output = self.classifier(output.pooler_output)
         sigmoided_output = torch.sigmoid(output)  # Loss function usually will include a sigmoid layer
 
