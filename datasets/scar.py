@@ -44,8 +44,6 @@ class SCAR:
 
             if undersample:
                 self.data_dir = os.path.join(data_root, target + "_undersampled")
-                self.n_lines['train'] = 1815
-                raise NotImplementedError("Need to fix undersampling")
             else:
                 self.data_dir = os.path.join(data_root, target)
 
@@ -72,9 +70,9 @@ class SCAR:
                             'dev': self.n_dev,
                             'test': self.n_test}
 
-            if undersample:
-                self.n_lines['train'] = 1815
-                raise NotImplementedError
+            ## if undersample:
+            ##    self.n_lines['train'] = 1815
+            ##    raise NotImplementedError
 
             # Make iters of the input text files
             self.train_iter, self.dev_iter, self.test_iter = self.create_iter(split=('train', 'dev', 'test'))

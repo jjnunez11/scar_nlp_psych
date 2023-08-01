@@ -7,13 +7,18 @@ from copy import deepcopy
 def tuning_analysis(r_dir, r_f, tuning_table):
     df = pd.read_csv(r_f, index_col="Run Name")
     df = df[df['Table'] == tuning_table]
-    df = df[df['Class Imbalance Fix'] == "loss_weight"]
+
+    if tuning_table == "lf_tuning":
+        df = df[df['Class Imbalance Fix'] == 'undersampling']
+        df = df[df['Patience'] == 10]
+    else:
+        df = df[df['Class Imbalance Fix'] == "loss_weight"]
 
     if tuning_table == "cnn_tuning":
         to_group = ["CNN Weight Decay", "Learning Rate", "Dropout"]
     elif tuning_table == "lstm_tuning":
         to_group = ["Dropout", "LSTM Wt Dropout", "LSTM Embed Dropout", "Learning Rate"]
-    elif tuning_table == "bert_tuning":
+    elif tuning_table in ["bert_tuning", "lf_tuning"]:
         to_group = ["CNN Weight Decay", "Learning Rate"]
     elif tuning_table == "bow_tuning":
         to_group = ['BoW Classifier', 'BoW LR C', 'BoW RF Estimators', 'Max Tokens']
@@ -29,12 +34,13 @@ def tuning_analysis(r_dir, r_f, tuning_table):
 
 if __name__ == "__main__":
 
-    table = "bert_tuning"
+    # table = "bert_tuning"
     # table = "bow_tuning"
     # table = "cnn_tuning"
     # table = "lstm_tuning"
-    # target = "psych"
-    target = "sw"
+    table = "lf_tuning"
+    target = "psych"
+    # target = "sw"
 
     if target == "psych":
         results_dir = r"C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12"
