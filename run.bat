@@ -243,10 +243,17 @@
 :: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --patience 10 --lr 0.0001 --weight-decay 0.0001
 :: python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --patience 10 --weight-decay 0.0001 --dropout 0.85 --lr 0.0001
 
-python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --patience 20
-python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.0001 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --patience 20
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.0001 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0005 --weight-decay 0.0001 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0005 --weight-decay 0 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.00001 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.000001 --patience 10
+:: python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.00005 --weight-decay 0 --patience 10
+
+python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.0001 --patience 20
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0005 --weight-decay 0.0001 --patience 10
-python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0005 --weight-decay 0 --patience 10
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.00001 --patience 10
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.000001 --patience 10
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.00005 --weight-decay 0 --patience 10
+python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.00005 --weight-decay 0.00005 --patience 10
