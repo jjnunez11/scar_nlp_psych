@@ -11,7 +11,11 @@ from captum.attr import LayerIntegratedGradients, TokenReferenceBase, visualizat
 from torchtext.data.utils import get_tokenizer
 from models.cnn.model import CNN
 from datasets.scar import SCAR
+import pandas as pd
+## import BERTopic
+
 sys.path.insert(0, os.path.abspath('../'))
+
 
 class MultiLIGTopic:
 
@@ -47,10 +51,31 @@ class MultiLIGTopic:
         # Get the Layered Intergraded Gradients for the model
         self.lig = LayerIntegratedGradients(model, model.embed)
 
+    def call_bertopic(self, docs):
+
+        ## opic_model = BERTopic()
+        ## topics, probs = topic_model.fit_transform(docs)
+
+        ## print(topic_model.get_topic_info())
+
+        print('goodbye')
+
     def extract_impt_sens_from_doc(self, doc_text, doc_label):
+
+        # Interpret a document, finding a LIG importance score for all words in this context
         doc_viz_record = self.interpret_doc(doc_text, doc_label)
 
-        print(f'finished interpreting doc, here is the type of the record: {type(doc_viz_record)}')
+        print('done interpreting document')
+        print(f'Here is the record type: {type(doc_viz_record)}')
+        print(doc_viz_record.__dir__())
+
+        # Separate the document into sentences, and score per our criteria
+        doc_sentence_df = self.score_sentences(doc_viz_record)
+
+        # Filter out the sentences that meet our criteria
+        doc_filtered_sentences = self.filter_sentences(doc_sentence_df)
+
+        return doc_filtered_sentences
 
     def interpret_doc(self, doc_text, doc_label):
         text = [tok for tok in self.tokenizer(doc_text.lower())]
@@ -75,8 +100,6 @@ class MultiLIGTopic:
         # compute attributions and approximation delta using layer integrated gradients
         attributions_ig, delta = self.lig.attribute(input_indices, reference_indices, \
                                                     n_steps=500, return_convergence_delta=True)
-        # Replace Label with Text below
-        # self.add_attributions_to_visualizer(attributions_ig, text, pred, pred_ind, doc_label, delta, vis_data_records_ig)
 
         attributions_ig = attributions_ig.sum(dim=2).squeeze(0)
         attributions_ig = attributions_ig / torch.norm(attributions_ig)
@@ -91,6 +114,72 @@ class MultiLIGTopic:
                                                                 text,
                                                                 delta)
         return viz_data_record
+
+    @staticmethod
+    def score_sentences(doc_viz_record):
+        print(doc_viz_record.__doc__)
+        raw_words = doc_viz_record.raw_input_ids
+        importances = doc_viz_record.word_attributions
+
+        # Use pandas dataframe to keep track of words, their importances, and what sentances they are in
+        # Using pandas will allow us to easily change criteria for included sentences.
+        doc_df = pd.DataFrame()
+
+        doc_df['Words'] = raw_words
+        doc_df['Importance'] = importances
+        doc_df['Sentence'] = 'not_assigned'
+
+        sentence_i = 0
+        for i in range(len(raw_words)):
+            doc_df.loc[i, 'Sentence'] = sentence_i
+            # do not change sentence if we are at the start or end
+            if 0 < i < len(raw_words) - 1:
+                if raw_words[i] == ".":
+                    is_title = raw_words[i - 1] in ["mr", "mrs", 'ms', 'dr']
+                    is_number = raw_words[i - 1].isdigit() and raw_words[i + 1].isdigit()
+                    if not is_title and not is_number:
+                        sentence_i += 1
+
+        # Group the DataFrame by "Sentence" and calculate the required values for each group
+        grouped_df = doc_df.groupby("Sentence").agg(
+            Max_Positive=("Importance", "max"),  # Maximum positive importance for each sentence group
+            Max_Negative=("Importance", "min"),  # Minimum negative importance for each sentence group
+            Mean_Importance=("Importance", "mean")  # Mean importance for each sentence group
+        )
+
+        # Rename the columns in the grouped DataFrame
+        grouped_df.rename(columns={
+            "Max_Positive": "Max Positive",
+            "Max_Negative": "Max Negative",
+            "Mean_Importance": "Mean Importance"
+        }, inplace=True)
+
+        # Merge the grouped DataFrame back into the original DataFrame based on the "Sentence" column
+        doc_df = pd.merge(doc_df, grouped_df, on="Sentence", suffixes=("", "_grouped"))
+
+        doc_df.to_csv('doc_pd.csv')
+
+        return doc_df
+
+    def filter_sentences(self, doc_df):
+        criterion = self.criteria
+        cutoff_value = self.cutoff
+
+        if criterion == "max_pos":
+            filtered_df = doc_df[doc_df["Max Positive"] > cutoff_value]
+        elif criterion == "max_neg":
+            filtered_df = doc_df[doc_df["Max Negative"] < cutoff_value]
+        elif criterion == "mean_above":
+            filtered_df = doc_df[doc_df["Mean Importance"] > cutoff_value]
+        elif criterion == "mean_below":
+            filtered_df = doc_df[doc_df["Mean Importance"] < cutoff_value]
+        else:
+            raise ValueError(
+                "Invalid criterion. Valid criteria are 'max_pos', 'max_neg', 'mean_above', and 'mean_below'.")
+
+        filtered_sentences = filtered_df.groupby("Sentence")["Words"].apply(' '.join).tolist()
+        return filtered_sentences
+
 
     def forward_with_sigmoid(self, input):
         return torch.sigmoid(self.model(input))

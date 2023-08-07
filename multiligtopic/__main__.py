@@ -12,4 +12,8 @@ if __name__ == '__main__':
     text = file.read()
     file.close()
 
-    multi.extract_impt_sens_from_doc(text, 1)
+    sentences = multi.extract_impt_sens_from_doc(text, 1)
+
+    multi.call_bertopic(sentences)
+
+
