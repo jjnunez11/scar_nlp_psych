@@ -43,7 +43,7 @@ class MultiLIGTopic:
         self.results_dir = os.path.join(config.results_dir, self.target, "MultiLIGTopic")
         if not os.path.exists(self.results_dir):
             os.mkdir(self.results_dir)
-        f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}.txt'
+        f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}'
         self.f_out = os.path.join(self.results_dir, f_out_name)
 
         # Setup the model that will be used
@@ -85,6 +85,7 @@ class MultiLIGTopic:
     def extract_sents_from_docs(self, f):
         assert len(self.sents) == 0
         errors = 0
+        i = 0
 
         file = open(f, "r")
 
@@ -103,16 +104,19 @@ class MultiLIGTopic:
             try:
                 sents_from_doc = self.extract_sents_from_doc(raw_text, label)
                 self.sents = self.sents + sents_from_doc
+                i += 1
             except RuntimeError:
                 errors += 1
                 print(f'A document could not have sentences extracted due to RuntimeError. {errors} total')
 
-            # if len(self.sents) > 100:
-            #    break
+            if i > 5:  # TODO REMOVE FOR FULL RUN
+                break
 
         file.close()
 
-        f_out = open(self.f_out, 'w+')
+        n_sents = len(self.sents)
+
+        f_out = open(self.f_out + f'_{n_sents}.txt', 'x')
         for sent in self.sents:
             f_out.write(sent + "\n")
         f_out.close()
