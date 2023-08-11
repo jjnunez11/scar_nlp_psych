@@ -29,6 +29,15 @@ class MultiLIGTopic:
         self.device = config.device
         self.target = config.target
 
+        if config.device == 'gpu':
+            self.device = torch.device('cuda:0')
+            print("Using a CUDA GPU, woot!")
+        elif config.device == 'cpu':
+            self.device = 'cpu'
+            print("Using a CPU, sad!")
+        else:
+            raise ValueError('Device argument must be cpu or gpu')
+
         # Criteria for sentence selection to feed to BERTTopic
         self.criteria = config.criteria
         self.cutoff = config.cutoff
@@ -51,7 +60,7 @@ class MultiLIGTopic:
         model = CNN(config=checkpoint['config'])
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
-        self.model = model.to(config.device)
+        self.model = model.to(self.device)
 
         # Setup the vocabulary to be used
         model_config = checkpoint['config']
