@@ -8,12 +8,12 @@ if __name__ == '__main__':
 
     multi = MultiLIGTopic(args)
 
-    file = open('anon.txt', mode='r')  # TODO delete this
-    text = file.read()
-    file.close()
+    # file = open('anon.txt', mode='r')  # TODO delete this
+    # text = file.read()
+    # file.close()
 
-    sentences = multi.extract_impt_sens_from_doc(text, 1)
+    # sentences = multi.extract_sents_from_doc(text, 1)
 
-    multi.call_bertopic(sentences)
+    multi.call_bertopic(multi.sents)
 
 

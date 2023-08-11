@@ -6,13 +6,16 @@ import torchtext
 import torchtext.data
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.datasets import fetch_20newsgroups
 from torchtext.vocab import Vocab
 from captum.attr import LayerIntegratedGradients, TokenReferenceBase, visualization
 from torchtext.data.utils import get_tokenizer
+from tqdm import tqdm
+
 from models.cnn.model import CNN
 from datasets.scar import SCAR
 import pandas as pd
-## import BERTopic
+from bertopic import BERTopic
 
 sys.path.insert(0, os.path.abspath('../'))
 
@@ -24,13 +27,24 @@ class MultiLIGTopic:
         self.tokenizer = get_tokenizer('basic_english')
         self.text_to_viz = []
         self.device = config.device
+        self.target = config.target
 
         # Criteria for sentence selection to feed to BERTTopic
         self.criteria = config.criteria
         self.cutoff = config.cutoff
         self.min_len = 1500
-
         print(f'Criteria used: {self.criteria}, cutoff used: {self.cutoff}')
+
+        # Data to interpret
+        self.data_dir = os.path.join(config.data_dir, self.target)
+        self.f_in = os.path.join(self.data_dir, 'test.tsv')
+
+        # Dir to output
+        self.results_dir = os.path.join(config.results_dir, self.target, "MultiLIGTopic")
+        if not os.path.exists(self.results_dir):
+            os.mkdir(self.results_dir)
+        f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}.txt'
+        self.f_out = os.path.join(self.results_dir, f_out_name)
 
         # Setup the model that will be used
         checkpoint = torch.load(config.model_path)
@@ -38,7 +52,6 @@ class MultiLIGTopic:
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
         self.model = model.to(config.device)
-        # print(model)
 
         # Setup the vocabulary to be used
         model_config = checkpoint['config']
@@ -48,32 +61,74 @@ class MultiLIGTopic:
         PAD_IND = self.vocab['<PAD>']
         self.token_reference = TokenReferenceBase(reference_token_idx=PAD_IND)
 
-        # Get the Layered Intergraded Gradients for the model
+        # Get the Layered Integrated Gradients for the model
         self.lig = LayerIntegratedGradients(model, model.embed)
 
-    def call_bertopic(self, docs):
+        # Either extract the sentences fresh, or load from file
+        if config.load_sents:
+            raise NotImplementedError
+        else:
+            self.sents = []
+            self.extract_sents_from_docs(self.f_in)
 
-        ## opic_model = BERTopic()
-        ## topics, probs = topic_model.fit_transform(docs)
+    @staticmethod
+    def call_bertopic(docs):
 
-        ## print(topic_model.get_topic_info())
+        topic_model = BERTopic()
+        print("Created a topic model")
+        # docs = fetch_20newsgroups(subset='all', remove=('headers', 'footers', 'quotes'))['data']
+        topics, probs = topic_model.fit_transform(docs)
+        print('fit the topic model')
 
-        print('goodbye')
+        print(topic_model.get_topic_info())
 
-    def extract_impt_sens_from_doc(self, doc_text, doc_label):
+    def extract_sents_from_docs(self, f):
+        assert len(self.sents) == 0
+        errors = 0
+
+        file = open(f, "r")
+
+        for line in tqdm(file):
+            values = line.split("\t")
+            assert len(values) == 2, f"Reading a file, we found a line with {len(values)} values: \n{line}\n"
+            raw_label, raw_text = values[0], values[1]
+
+            if raw_label == '10':
+                label = 0
+            elif raw_label == '01':
+                label = 1
+            else:
+                raise ValueError("Invalid label text parsed")
+
+            try:
+                sents_from_doc = self.extract_sents_from_doc(raw_text, label)
+                self.sents = self.sents + sents_from_doc
+            except RuntimeError:
+                errors += 1
+                print(f'A document could not have sentences extracted due to RuntimeError. {errors} total')
+
+            # if len(self.sents) > 100:
+            #    break
+
+        file.close()
+
+        f_out = open(self.f_out, 'w+')
+        for sent in self.sents:
+            f_out.write(sent + "\n")
+        f_out.close()
+
+    def extract_sents_from_doc(self, doc_text, doc_label):
 
         # Interpret a document, finding a LIG importance score for all words in this context
         doc_viz_record = self.interpret_doc(doc_text, doc_label)
-
-        print('done interpreting document')
-        print(f'Here is the record type: {type(doc_viz_record)}')
-        print(doc_viz_record.__dir__())
 
         # Separate the document into sentences, and score per our criteria
         doc_sentence_df = self.score_sentences(doc_viz_record)
 
         # Filter out the sentences that meet our criteria
         doc_filtered_sentences = self.filter_sentences(doc_sentence_df)
+
+        print(f'This document resulted in {len(doc_filtered_sentences)} new important sentences!')
 
         return doc_filtered_sentences
 
@@ -117,7 +172,6 @@ class MultiLIGTopic:
 
     @staticmethod
     def score_sentences(doc_viz_record):
-        print(doc_viz_record.__doc__)
         raw_words = doc_viz_record.raw_input_ids
         importances = doc_viz_record.word_attributions
 
@@ -179,7 +233,6 @@ class MultiLIGTopic:
 
         filtered_sentences = filtered_df.groupby("Sentence")["Words"].apply(' '.join).tolist()
         return filtered_sentences
-
 
     def forward_with_sigmoid(self, input):
         return torch.sigmoid(self.model(input))
