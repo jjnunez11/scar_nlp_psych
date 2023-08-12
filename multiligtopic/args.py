@@ -24,6 +24,7 @@ def get_args():
 
     parser.add_argument('--load_sents', default=False, dest='load_sents', action='store_true',
                         help="If true, will load a txt file with important sentences, instead of extracting anew")
+    parser.add_argument('--load_file', default=r"C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\dspln_PSYCHIATRY_12\MultiLIGTopic\impt_sents_dspln_PSYCHIATRY_12_max_pos_0.08_21392.txt")
 
     parser.add_argument('--data-dir',
                         default=os.path.join(r'C:\Users\jjnunez\PycharmProjects', 'scar_nlp_data', 'data'))

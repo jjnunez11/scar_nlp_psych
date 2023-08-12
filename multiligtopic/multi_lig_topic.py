@@ -1,14 +1,7 @@
 import copy
 import os
 import sys
-import captum
 import torch
-import torchtext
-import torchtext.data
-import torch.nn as nn
-import torch.nn.functional as F
-from sklearn.datasets import fetch_20newsgroups
-from torchtext.vocab import Vocab
 from captum.attr import LayerIntegratedGradients, TokenReferenceBase, visualization
 from torchtext.data.utils import get_tokenizer
 from tqdm import tqdm
@@ -30,60 +23,65 @@ class MultiLIGTopic:
         self.device = config.device
         self.target = config.target
 
-        if config.device == 'gpu':
-            self.device = torch.device('cuda:0')
-            print("Using a CUDA GPU, woot!")
-        elif config.device == 'cpu':
-            self.device = 'cpu'
-            print("Using a CPU, sad!")
-        else:
-            raise ValueError('Device argument must be cpu or gpu')
-
-        # Criteria for sentence selection to feed to BERTTopic
-        self.criteria = config.criteria
-        self.cutoff = config.cutoff
-        self.gpu_vec_len_limit = 1500  # limit for current gpu
-        print(f'Criteria used: {self.criteria}, cutoff used: {self.cutoff}')
-
-        # Data to interpret
-        self.data_dir = os.path.join(config.data_dir, self.target)
-        self.f_in = os.path.join(self.data_dir, 'test.tsv')
-
-        # Dir to output
-        self.results_dir = os.path.join(config.results_dir, self.target, "MultiLIGTopic")
-        if not os.path.exists(self.results_dir):
-            os.mkdir(self.results_dir)
-        f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}'
-        self.f_out = os.path.join(self.results_dir, f_out_name)
-
-        # Setup the model that will be used
-        checkpoint = torch.load(config.model_path)
-        model = CNN(config=checkpoint['config'])
-        model.load_state_dict(checkpoint['model_state_dict'])
-        model.eval()
-        self.model = model.to(self.device)
-        if config.device == "gpu":
-            # Due to gpu limits, we will have a backup copy of the model on cpu
-            # to use when a doc is too big for our gpu
-            model_for_cpu = copy.deepcopy(model)
-            self.model_cpu = model_for_cpu.to("cpu")
-
-        # Setup the vocabulary to be used
-        model_config = checkpoint['config']
-        scar = SCAR(model_config.batch_size, model_config.data_dir, model_config.target, eval_only=False)
-        self.vocab = scar.vocab
-        self.itos = self.vocab.get_itos()
-        PAD_IND = self.vocab['<PAD>']
-        self.token_reference = TokenReferenceBase(reference_token_idx=PAD_IND)
-
-        # Get the Layered Integrated Gradients for the model
-        self.lig = LayerIntegratedGradients(model, model.embed)
-
         # Either extract the sentences fresh, or load from file
         if config.load_sents:
-            raise NotImplementedError
+            # Read the file and store each line (sentence) in a list
+            with open(config.load_file, 'r') as file:
+                sentences = file.readlines()
+            # Remove newline characters and any leading/trailing whitespace from each sentence
+            self.sents = [sentence.strip() for sentence in sentences]
         else:
             self.sents = []
+
+            if config.device == 'gpu':
+                self.device = torch.device('cuda:0')
+                print("Using a CUDA GPU, woot!")
+            elif config.device == 'cpu':
+                self.device = 'cpu'
+                print("Using a CPU, sad!")
+            else:
+                raise ValueError('Device argument must be cpu or gpu')
+
+            # Criteria for sentence selection to feed to BERTTopic
+            self.criteria = config.criteria
+            self.cutoff = config.cutoff
+            self.gpu_vec_len_limit = 1500  # limit for current gpu
+            print(f'Criteria used: {self.criteria}, cutoff used: {self.cutoff}')
+
+            # Data to interpret
+            self.data_dir = os.path.join(config.data_dir, self.target)
+            self.f_in = os.path.join(self.data_dir, 'test.tsv')
+
+            # Dir to output
+            self.results_dir = os.path.join(config.results_dir, self.target, "MultiLIGTopic")
+            if not os.path.exists(self.results_dir):
+                os.mkdir(self.results_dir)
+            f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}'
+            self.f_out = os.path.join(self.results_dir, f_out_name)
+
+            # Setup the model that will be used
+            checkpoint = torch.load(config.model_path)
+            model = CNN(config=checkpoint['config'])
+            model.load_state_dict(checkpoint['model_state_dict'])
+            model.eval()
+            self.model = model.to(self.device)
+            if config.device == "gpu":
+                # Due to gpu limits, we will have a backup copy of the model on cpu
+                # to use when a doc is too big for our gpu
+                model_for_cpu = copy.deepcopy(model)
+                self.model_cpu = model_for_cpu.to("cpu")
+
+            # Setup the vocabulary to be used
+            model_config = checkpoint['config']
+            scar = SCAR(model_config.batch_size, model_config.data_dir, model_config.target, eval_only=False)
+            self.vocab = scar.vocab
+            self.itos = self.vocab.get_itos()
+            PAD_IND = self.vocab['<PAD>']
+            self.token_reference = TokenReferenceBase(reference_token_idx=PAD_IND)
+
+            # Get the Layered Integrated Gradients for the model
+            self.lig = LayerIntegratedGradients(model, model.embed)
+
             self.extract_sents_from_docs(self.f_in)
 
     @staticmethod
@@ -99,7 +97,6 @@ class MultiLIGTopic:
 
     def extract_sents_from_docs(self, f):
         assert len(self.sents) == 0
-        errors = 0
         i = 0
 
         file = open(f, "r")
@@ -120,18 +117,7 @@ class MultiLIGTopic:
             self.sents = self.sents + sents_from_doc
             i += 1
 
-
-            # try:
-            #    sents_from_doc = self.extract_sents_from_doc(raw_text, label)
-            #    self.sents = self.sents + sents_from_doc
-            #    i += 1
-            #except RuntimeError:
-            #    errors += 1
-            #    print(f'A document could not have sentences extracted due to RuntimeError. {errors} total')
-            #    print(raw_text)
-            #    break
-
-            if i > 10:  # TODO REMOVE FOR FULL RUN
+            if i > 3000:  # TODO REMOVE FOR FULL RUN
                 break
 
         file.close()
@@ -154,7 +140,7 @@ class MultiLIGTopic:
         # Filter out the sentences that meet our criteria
         doc_filtered_sentences = self.filter_sentences(doc_sentence_df)
 
-        print(f'This document resulted in {len(doc_filtered_sentences)} new important sentences!')
+        # print(f'This document resulted in {len(doc_filtered_sentences)} new important sentences!')
 
         return doc_filtered_sentences
 
@@ -170,6 +156,8 @@ class MultiLIGTopic:
             old_device = self.device
             self.device = "cpu"
             self.model.to("cpu")
+        else:
+            old_device = None
 
         self.model.zero_grad()
 
@@ -186,7 +174,7 @@ class MultiLIGTopic:
         reference_indices = self.token_reference.generate_reference(seq_length, device=self.device).unsqueeze(0)
 
         # compute attributions and approximation delta using layer integrated gradients
-        attributions_ig, delta = self.lig.attribute(input_indices, reference_indices, \
+        attributions_ig, delta = self.lig.attribute(input_indices, reference_indices,
                                                     n_steps=500, return_convergence_delta=True)
 
         attributions_ig = attributions_ig.sum(dim=2).squeeze(0)
@@ -273,5 +261,5 @@ class MultiLIGTopic:
         filtered_sentences = filtered_df.groupby("Sentence")["Words"].apply(' '.join).tolist()
         return filtered_sentences
 
-    def forward_with_sigmoid(self, input):
-        return torch.sigmoid(self.model(input))
+    def forward_with_sigmoid(self, nn_input):
+        return torch.sigmoid(self.model(nn_input))
