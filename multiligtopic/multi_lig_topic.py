@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 import captum
@@ -41,7 +42,7 @@ class MultiLIGTopic:
         # Criteria for sentence selection to feed to BERTTopic
         self.criteria = config.criteria
         self.cutoff = config.cutoff
-        self.min_len = 1500
+        self.gpu_vec_len_limit = 1500  # limit for current gpu
         print(f'Criteria used: {self.criteria}, cutoff used: {self.cutoff}')
 
         # Data to interpret
@@ -61,6 +62,11 @@ class MultiLIGTopic:
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
         self.model = model.to(self.device)
+        if config.device == "gpu":
+            # Due to gpu limits, we will have a backup copy of the model on cpu
+            # to use when a doc is too big for our gpu
+            model_for_cpu = copy.deepcopy(model)
+            self.model_cpu = model_for_cpu.to("cpu")
 
         # Setup the vocabulary to be used
         model_config = checkpoint['config']
@@ -110,15 +116,22 @@ class MultiLIGTopic:
             else:
                 raise ValueError("Invalid label text parsed")
 
-            try:
-                sents_from_doc = self.extract_sents_from_doc(raw_text, label)
-                self.sents = self.sents + sents_from_doc
-                i += 1
-            except RuntimeError:
-                errors += 1
-                print(f'A document could not have sentences extracted due to RuntimeError. {errors} total')
+            sents_from_doc = self.extract_sents_from_doc(raw_text, label)
+            self.sents = self.sents + sents_from_doc
+            i += 1
 
-            if i > 5:  # TODO REMOVE FOR FULL RUN
+
+            # try:
+            #    sents_from_doc = self.extract_sents_from_doc(raw_text, label)
+            #    self.sents = self.sents + sents_from_doc
+            #    i += 1
+            #except RuntimeError:
+            #    errors += 1
+            #    print(f'A document could not have sentences extracted due to RuntimeError. {errors} total')
+            #    print(raw_text)
+            #    break
+
+            if i > 10:  # TODO REMOVE FOR FULL RUN
                 break
 
         file.close()
@@ -147,16 +160,23 @@ class MultiLIGTopic:
 
     def interpret_doc(self, doc_text, doc_label):
         text = [tok for tok in self.tokenizer(doc_text.lower())]
-        if len(text) < self.min_len:
-            text += ['<PAD>'] * (self.min_len - len(text))
+        if len(text) < self.gpu_vec_len_limit:
+            text += ['<PAD>'] * (self.gpu_vec_len_limit - len(text))
         indexed = [self.vocab[t] for t in text]
+
+        # Current gpu has issues with vram, so if doc is too big, move to cpu
+        move_to_cpu = len(text) > self.gpu_vec_len_limit and not self.device == "cpu"
+        if move_to_cpu:
+            old_device = self.device
+            self.device = "cpu"
+            self.model.to("cpu")
 
         self.model.zero_grad()
 
         input_indices = torch.tensor(indexed, device=self.device)
         input_indices = input_indices.unsqueeze(0)
 
-        seq_length = self.min_len
+        seq_length = len(text)
 
         # predict
         pred = self.forward_with_sigmoid(input_indices).item()
@@ -181,6 +201,12 @@ class MultiLIGTopic:
                                                                 attributions_ig.sum(),
                                                                 text,
                                                                 delta)
+
+        # If doc was too big for gpu, move back to gpu for next
+        if move_to_cpu:
+            self.device = old_device
+            self.model.to(self.device)
+
         return viz_data_record
 
     @staticmethod
