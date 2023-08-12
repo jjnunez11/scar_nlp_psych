@@ -87,15 +87,31 @@ class MultiLIGTopic:
     @staticmethod
     def call_bertopic(docs):
 
-        topic_model = BERTopic()
+        # topic_model = BERTopic()
         print("Created a topic model")
         # docs = fetch_20newsgroups(subset='all', remove=('headers', 'footers', 'quotes'))['data']
-        topics, probs = topic_model.fit_transform(docs)
+        # topics, probs = topic_model.fit_transform(docs)
+        topic_model = BERTopic(top_n_words=10).fit(docs)  # n_gram_range=(1, 2),
+
         print('fit the topic model')
 
-        print(topic_model.get_topic_info())
-        print(topic_model.get_topic(0))
-        print(topic_model.get_topic(1))
+        def extract_first_from_tuple_list(tuple_list):
+            return [item[0] for item in tuple_list]
+
+        n_topics = 20
+        topic_df = topic_model.get_topic_info().head(n_topics + 1)
+        topic_df = topic_df.iloc[1:]
+        topic_df = topic_df.set_index('Topic')
+        topic_df['Words'] = topic_df.index.map(topic_model.get_topic)
+        topic_df['Words'] = topic_df['Words'].apply(extract_first_from_tuple_list)
+
+        print(topic_df)
+
+        print(type(topic_model.get_topic(0)[0]))
+        # print(f'The type of get_topic_info is: {type(topic_model.get_topic_info().head(20))}')
+        # print(f'The type of get_topic is: {type(topic_model.get_topic(0))}')
+        # print(topic_model.get_topic(0))
+        #print(topic_model.get_topic(1))
 
     def extract_sents_from_docs(self, f):
         assert len(self.sents) == 0
