@@ -94,6 +94,8 @@ class MultiLIGTopic:
         print('fit the topic model')
 
         print(topic_model.get_topic_info())
+        print(topic_model.get_topic(0))
+        print(topic_model.get_topic(1))
 
     def extract_sents_from_docs(self, f):
         assert len(self.sents) == 0
@@ -117,8 +119,8 @@ class MultiLIGTopic:
             self.sents = self.sents + sents_from_doc
             i += 1
 
-            if i > 3000:  # TODO REMOVE FOR FULL RUN
-                break
+            # if i > 3000:  # TODO REMOVE FOR FULL RUN
+            #    break
 
         file.close()
 
@@ -148,10 +150,13 @@ class MultiLIGTopic:
         text = [tok for tok in self.tokenizer(doc_text.lower())]
         if len(text) < self.gpu_vec_len_limit:
             text += ['<PAD>'] * (self.gpu_vec_len_limit - len(text))
+        else:
+            text = text[0:self.gpu_vec_len_limit]  # TODO remove for final run, this is to save time
         indexed = [self.vocab[t] for t in text]
 
         # Current gpu has issues with vram, so if doc is too big, move to cpu
         move_to_cpu = len(text) > self.gpu_vec_len_limit and not self.device == "cpu"
+        move_to_cpu = False  # TODO remove for final run, this is to save time
         if move_to_cpu:
             old_device = self.device
             self.device = "cpu"
