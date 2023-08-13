@@ -11,6 +11,8 @@ from datasets.scar import SCAR
 import pandas as pd
 from bertopic import BERTopic
 
+
+
 sys.path.insert(0, os.path.abspath('../'))
 
 
@@ -22,6 +24,7 @@ class MultiLIGTopic:
         self.text_to_viz = []
         self.device = config.device
         self.target = config.target
+        self.filt_sents_f = None
 
         # Either extract the sentences fresh, or load from file
         if config.load_sents:
@@ -30,6 +33,7 @@ class MultiLIGTopic:
                 sentences = file.readlines()
             # Remove newline characters and any leading/trailing whitespace from each sentence
             self.sents = [sentence.strip() for sentence in sentences]
+            self.filt_sents_f = config.load_file  # this is the filename for the filtered sentenc
         else:
             self.sents = []
 
@@ -57,7 +61,7 @@ class MultiLIGTopic:
             if not os.path.exists(self.results_dir):
                 os.mkdir(self.results_dir)
             f_out_name = f'impt_sents_{self.target}_{self.criteria}_{self.cutoff}'
-            self.f_out = os.path.join(self.results_dir, f_out_name)
+            self.filt_sents_f = os.path.join(self.results_dir, f_out_name)
 
             # Setup the model that will be used
             checkpoint = torch.load(config.model_path)
@@ -84,8 +88,7 @@ class MultiLIGTopic:
 
             self.extract_sents_from_docs(self.f_in)
 
-    @staticmethod
-    def call_bertopic(docs):
+    def call_bertopic(self, docs):
 
         # topic_model = BERTopic()
         print("Created a topic model")
@@ -113,6 +116,21 @@ class MultiLIGTopic:
         # print(topic_model.get_topic(0))
         #print(topic_model.get_topic(1))
 
+        # Write out the DataFrame to a new file
+        topic_f = self.filt_sents_f
+        # Extract the directory, filename, and extension
+        directory, full_filename = os.path.split(topic_f)
+        filename_without_extension, extension = os.path.splitext(full_filename)
+        # Replace "impt_sents_" with "topic_df_"
+        new_filename_without_prefix = filename_without_extension.replace("impt_sents_", "topic_df_")
+        # Create the new filename with the .csv extension
+        topic_df_filename = os.path.join(directory, new_filename_without_prefix + ".csv")
+
+        topic_df.to_csv(topic_df_filename)
+
+        print(topic_df)
+        print(f'Printed topic_df to: {topic_df_filename}')
+
     def extract_sents_from_docs(self, f):
         assert len(self.sents) == 0
         i = 0
@@ -135,14 +153,14 @@ class MultiLIGTopic:
             self.sents = self.sents + sents_from_doc
             i += 1
 
-            # if i > 3000:  # TODO REMOVE FOR FULL RUN
+            #if i > 1:  # TODO REMOVE FOR FULL RUN
             #    break
 
         file.close()
 
         n_sents = len(self.sents)
 
-        f_out = open(self.f_out + f'_{n_sents}.txt', 'x')
+        f_out = open(self.filt_sents_f + f'_{n_sents}.txt', 'x')
         for sent in self.sents:
             f_out.write(sent + "\n")
         f_out.close()
