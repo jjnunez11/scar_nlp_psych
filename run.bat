@@ -262,3 +262,7 @@ python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" -
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.0001 --weight-decay 0.00001 --patience 10
 python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "lf_tuning" --imbalance-fix undersampling --lr 0.00005 --weight-decay 0 --patience 10
 
+:: python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "test_conda" --imbalance-fix undersampling --epochs 2
+:: WORKED python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "test_conda" --imbalance-fix undersampling --epochs 2 --max-tokens 512 --batch 8
+:: WORKED python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "test_conda" --imbalance-fix undersampling --epochs 2 --max-tokens 1024 --batch 4
+:: WORKED python -m models.longformer --target "dspln_PSYCHIATRY_12" --table "test_conda" --imbalance-fix undersampling --epochs 2 --max-tokens 2048 --batch 2

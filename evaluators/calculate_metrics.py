@@ -1,6 +1,7 @@
 from torchmetrics.functional import accuracy, precision, recall, auroc, f1, specificity
 from torchmetrics import ConfusionMatrix
 import torch
+import pandas as pd
 
 
 def calculate_metrics(pred_labels, target_labels, loss=torch.tensor([0])):
@@ -75,8 +76,8 @@ def add_epoch_perf(target_labels, pred_labels, loss, history):
     to the history dataframe
     """
     to_append = calculate_metrics(pred_labels, target_labels, loss)
-
-    history = history.append(to_append, ignore_index=True)
+    to_concat = pd.DataFrame(to_append, index=[0])  # due to pandas update, can no longer use append
+    history = pd.concat([history, to_concat], ignore_index=True)
     history.index.name = "epoch"  # only actually needs to be done once, but will just call again
 
     return history

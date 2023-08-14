@@ -92,7 +92,8 @@ class MyLogger(LightningLoggerBase):
         if 'dev_perf' in metrics:
             dev_perf = metrics["dev_perf"]
             dev_perf["epoch"] = metrics["epoch"]
-            self.dev_history = self.dev_history.append(dev_perf, ignore_index=True)
+            dev_perf_to_concat = pd.DataFrame(dev_perf, index=[0])
+            self.dev_history = pd.concat([self.dev_history, dev_perf_to_concat], ignore_index=True)
             self.dev_history.index.name = "epoch"
 
         elif 'train_perf' in metrics:
@@ -101,13 +102,15 @@ class MyLogger(LightningLoggerBase):
         elif 'train_perf_epoch' in metrics:
             train_perf = metrics["train_perf_epoch"]
             train_perf["epoch"] = metrics["epoch"]
-            self.train_history = self.train_history.append(train_perf, ignore_index=True)
+            train_perf_to_concat = pd.DataFrame(train_perf, index=[0])
+            self.train_history = pd.concat([self.train_history, train_perf_to_concat], ignore_index=True)
             self.train_history.index.name = "epoch"
 
         elif 'test_perf' in metrics:
             test_perf = metrics["test_perf"]
             test_perf["epoch"] = metrics["epoch"]
-            self.test_history = self.test_history.append(test_perf, ignore_index=True)
+            test_perf_to_concat = pd.DataFrame(test_perf, index=[0])
+            self.test_history = pd.concat([self.test_history, test_perf_to_concat], ignore_index=True)
             self.test_history.index.name = "epoch"
         else:
             raise ValueError(f"Unexpected metrics, here they are: {metrics}")

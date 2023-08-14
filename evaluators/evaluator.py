@@ -160,7 +160,8 @@ class Evaluator(object):
 
         # Read in the prior results df, and append this result via the dict
         df = pd.read_csv(self.results_for_target)
-        df = df.append(to_append, ignore_index=True)
+        to_concat = pd.DataFrame(to_append, index=[0])  # due to pandas update, can no longer use append
+        df = pd.concat([df, to_concat], ignore_index=True)
         # Set index, and reorder the columns
         df = df.set_index("Datetime")
         df = df[COLS_IN_ORDER]

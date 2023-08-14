@@ -14,6 +14,8 @@ if __name__ == '__main__':
 
     # sentences = multi.extract_sents_from_doc(text, 1)
 
-    multi.call_bertopic(multi.sents)
+    multi.fit_topic_model(multi.sents)
+    print(f'Shape of topic info: {multi.topic_model.get_topic_info().shape}')
+    multi.extract_top_topics(args.n_top_topics)
 
 

@@ -3,14 +3,20 @@ import os
 import sys
 import torch
 from captum.attr import LayerIntegratedGradients, TokenReferenceBase, visualization
+from sklearn.feature_extraction.text import CountVectorizer
 from torchtext.data.utils import get_tokenizer
 from tqdm import tqdm
 
+from multiligtopic.openai_api_key import OPENAI_API_KEY
 from models.cnn.model import CNN
 from datasets.scar import SCAR
 import pandas as pd
 from bertopic import BERTopic
-
+import openai
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance, OpenAI
+from umap import UMAP
+from hdbscan import HDBSCAN
+from sentence_transformers import SentenceTransformer
 
 
 sys.path.insert(0, os.path.abspath('../'))
@@ -25,6 +31,8 @@ class MultiLIGTopic:
         self.device = config.device
         self.target = config.target
         self.filt_sents_f = None
+        self.topic_model = None
+        self.top_topics = None
 
         # Either extract the sentences fresh, or load from file
         if config.load_sents:
@@ -88,33 +96,74 @@ class MultiLIGTopic:
 
             self.extract_sents_from_docs(self.f_in)
 
-    def call_bertopic(self, docs):
+    def fit_topic_model(self, docs):
 
-        # topic_model = BERTopic()
-        print("Created a topic model")
-        # docs = fetch_20newsgroups(subset='all', remove=('headers', 'footers', 'quotes'))['data']
+        # Prepare UMAP
+        umap_model = UMAP(n_neighbors=15, n_components=5, min_dist=0.0, metric='cosine', random_state=42)
+
+        # Prepare HDBSCAN
+        hdbscan_model = HDBSCAN(min_cluster_size=150, metric='euclidean', cluster_selection_method='eom',
+                                prediction_data=True)
+
+        # Prepare Vectorizer
+        vectorizer_model = CountVectorizer(stop_words="english", min_df=2, ngram_range=(1, 2))
+
+        # Prepare representations
+        # KeyBERT
+        keybert_model = KeyBERTInspired()
+        # MMR
+        # mmr_model = MaximalMarginalRelevance(diversity=0.3)
+        # GPT-3.5
+        openai.api_key = OPENAI_API_KEY  # Loaded from a file that I wont upload to git
+
+        prompt = """
+        I have a topic that contains the following documents:
+        [DOCUMENTS]
+        The topic is described by the following keywords: [KEYWORDS]
+
+        Based on the information above, extract a short but highly descriptive topic label of at most 5 words. Make 
+        sure it is in the following format: topic: <topic label> """
+        openai_model = OpenAI(model="gpt-3.5-turbo", exponential_backoff=True, chat=True, prompt=prompt)
+
+        representation_model = {
+            "KeyBERT": keybert_model,
+            "OpenAI": openai_model,
+            # "MMR": mmr_model, this is the default so no need to also show it
+        }
+        print('Prepared BERTopic Components')
+
         # topics, probs = topic_model.fit_transform(docs)
-        topic_model = BERTopic(top_n_words=10).fit(docs)  # n_gram_range=(1, 2),
+        topic_model = BERTopic(
+            umap_model=umap_model,
+            hdbscan_model=hdbscan_model,
+            vectorizer_model=vectorizer_model,
+            representation_model=representation_model,
+            top_n_words=10,
+            nr_topics=21,  # The first one is the outlier topic, so need 21
+            # n_gram_range=(1, 2),
+            verbose=True
+        )
+        print('About to fit')
+        topic_model.fit(docs)
+        # topics, probs = topic_model.fit_transform(docs)
 
-        print('fit the topic model')
+        print('Fitted the topic model!')
+
+        self.topic_model = topic_model
+
+    def extract_top_topics(self, n_top_topics):
 
         def extract_first_from_tuple_list(tuple_list):
             return [item[0] for item in tuple_list]
 
-        n_topics = 20
-        topic_df = topic_model.get_topic_info().head(n_topics + 1)
+        topic_df = self.topic_model.get_topic_info().head(n_top_topics + 1)
         topic_df = topic_df.iloc[1:]
         topic_df = topic_df.set_index('Topic')
-        topic_df['Words'] = topic_df.index.map(topic_model.get_topic)
+        topic_df['Words'] = topic_df.index.map(self.topic_model.get_topic)
         topic_df['Words'] = topic_df['Words'].apply(extract_first_from_tuple_list)
 
+        self.top_topics = topic_df
         print(topic_df)
-
-        print(type(topic_model.get_topic(0)[0]))
-        # print(f'The type of get_topic_info is: {type(topic_model.get_topic_info().head(20))}')
-        # print(f'The type of get_topic is: {type(topic_model.get_topic(0))}')
-        # print(topic_model.get_topic(0))
-        #print(topic_model.get_topic(1))
 
         # Write out the DataFrame to a new file
         topic_f = self.filt_sents_f
@@ -128,7 +177,6 @@ class MultiLIGTopic:
 
         topic_df.to_csv(topic_df_filename)
 
-        print(topic_df)
         print(f'Printed topic_df to: {topic_df_filename}')
 
     def extract_sents_from_docs(self, f):

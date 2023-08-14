@@ -15,6 +15,9 @@ def get_args():
 
     parser.add_argument('--cutoff', default=0.08, type=float, help='Value a sentence must have for given criteria')
 
+    parser.add_argument('--n-top-topics', default=20, type=int,
+                        help='Number of top topics to extract for final df')
+
     ckpt_name = "CNN_20230222-2048"
     ckpt_path = os.path.join(
         r"C:\Users\jjnunez\PycharmProjects\scar_nlp_psych\results\final_results\dspln_PSYCHIATRY_12\CNN",
