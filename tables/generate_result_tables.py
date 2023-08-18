@@ -117,6 +117,9 @@ class ResultsGenerator(object):
                     f.write(f"{self.horiz_sp}{p_value.round(6)}")
                 f.write(self.vert_sp)
 
+        # Also add in Cohen's d for effect size calculations
+        # WE NEED TO DO THIS ST ILL
+        
         f.close()
 
     def generate_p_table_both_dsplns(self):
