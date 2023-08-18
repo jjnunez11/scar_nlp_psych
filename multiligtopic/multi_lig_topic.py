@@ -151,6 +151,18 @@ class MultiLIGTopic:
 
         self.topic_model = topic_model
 
+        # Write out the topic_model to a new file
+        topic_f = self.filt_sents_f
+        # Extract the directory, filename, and extension
+        directory, full_filename = os.path.split(topic_f)
+        filename_without_extension, extension = os.path.splitext(full_filename)
+        # Replace "impt_sents_" with "topic_df_"
+        new_filename_without_prefix = filename_without_extension.replace("impt_sents_", "raw_topic_df_")
+        # Create the new filename with the .csv extension
+        topic_df_filename = os.path.join(directory, new_filename_without_prefix + ".csv")
+
+        topic_model.get_topic_info().to_csv(topic_df_filename, index=False)
+
     def extract_top_topics(self, n_top_topics):
 
         def extract_first_from_tuple_list(tuple_list):
@@ -171,7 +183,7 @@ class MultiLIGTopic:
         directory, full_filename = os.path.split(topic_f)
         filename_without_extension, extension = os.path.splitext(full_filename)
         # Replace "impt_sents_" with "topic_df_"
-        new_filename_without_prefix = filename_without_extension.replace("impt_sents_", "topic_df_")
+        new_filename_without_prefix = filename_without_extension.replace("impt_sents_", "cleaned_topic_df_")
         # Create the new filename with the .csv extension
         topic_df_filename = os.path.join(directory, new_filename_without_prefix + ".csv")
 

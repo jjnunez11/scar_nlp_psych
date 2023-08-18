@@ -8,14 +8,9 @@ if __name__ == '__main__':
 
     multi = MultiLIGTopic(args)
 
-    # file = open('anon.txt', mode='r')  # TODO delete this
-    # text = file.read()
-    # file.close()
-
-    # sentences = multi.extract_sents_from_doc(text, 1)
-
     multi.fit_topic_model(multi.sents)
     print(f'Shape of topic info: {multi.topic_model.get_topic_info().shape}')
+
     multi.extract_top_topics(args.n_top_topics)
 
 
