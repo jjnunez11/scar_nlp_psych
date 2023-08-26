@@ -101,8 +101,32 @@ class ResultsGenerator(object):
         else:
             raise ValueError
 
-        f = open(os.path.join(self.out_dir, f"{target}_pvalue_table.txt"), "w")
+        f = open(os.path.join(self.out_dir, f"{target}_pvalue_cohend_table.txt"), "w")
         header = self.horiz_sp.join(['Model'] + self.models) + self.vert_sp
+
+        f.write("Two-tailed t-test p-value")
+        f.write(self.vert_sp)
+        for metric in ["Balanced Accuracy", "AUC"]:
+            f.write(metric + self.vert_sp)
+            f.write(header)
+            df_metric = df[["Model", metric]]
+            for model_a in self.models:
+                f.write(model_a)
+                for model_b in self.models:
+                    df_model_a = df_metric[df_metric["Model"] == model_a][metric]
+                    df_model_b = df_metric[df_metric["Model"] == model_b][metric]
+                    if model_a == model_b:
+                        p_value = "-"
+                    else:
+                        p_value = ttest_rel(df_model_a, df_model_b).pvalue
+                        p_value = p_value.round(6)
+
+                    f.write(f"{self.horiz_sp}{p_value}")
+                f.write(self.vert_sp)
+
+        f.write(self.vert_sp)
+        f.write(self.horiz_sp + "Cohen's d Effect Size")
+        f.write(self.vert_sp)
 
         for metric in ["Balanced Accuracy", "AUC"]:
             f.write(metric + self.vert_sp)
@@ -113,20 +137,22 @@ class ResultsGenerator(object):
                 for model_b in self.models:
                     df_model_a = df_metric[df_metric["Model"] == model_a][metric]
                     df_model_b = df_metric[df_metric["Model"] == model_b][metric]
-                    p_value = ttest_rel(df_model_a, df_model_b).pvalue
-                    f.write(f"{self.horiz_sp}{p_value.round(6)}")
+                    if model_a == model_b:
+                        cohen_d_value = "-"
+                    else:
+                        cohen_d_value = self.cohen_d(df_model_a, df_model_b)
+                        cohen_d_value = cohen_d_value.round(6)
+
+                    f.write(f"{self.horiz_sp}{cohen_d_value}")
                 f.write(self.vert_sp)
 
-        # Also add in Cohen's d for effect size calculations
-        # WE NEED TO DO THIS ST ILL
-        
         f.close()
 
     def generate_p_table_both_dsplns(self):
         df_psych = self.psych_raw_df
         df_sw = self.sw_raw_df
 
-        f = open(os.path.join(self.out_dir, f"both_dsplns_pvalue_table.txt"), "w")
+        f = open(os.path.join(self.out_dir, f"both_dsplns_pvalue_cohend_table.txt"), "w")
         f.write(self.horiz_sp + "P-value" + self.vert_sp)
 
         for metric in ["Balanced Accuracy", "AUC"]:
@@ -136,7 +162,21 @@ class ResultsGenerator(object):
                 df_sw_metric = df_sw[df_sw["Model"] == model][metric]
                 p_value = ttest_rel(df_psych_metric, df_sw_metric).pvalue
                 f.write(f"{model}{self.horiz_sp}{p_value.round(3)}{self.vert_sp}")
-                # f.write(self.vert_sp)
+
+        f.write(self.vert_sp)
+        f.write(self.horiz_sp + "Cohen's d Effect Size")
+        f.write(self.vert_sp)
+
+        for metric in ["Balanced Accuracy", "AUC"]:
+            f.write(metric+self.vert_sp)
+            for model in self.models:
+                df_psych_metric = df_psych[df_psych["Model"] == model][metric]
+                df_sw_metric = df_sw[df_sw["Model"] == model][metric]
+                if model == "BoW":
+                    cohend_value = "inf"
+                else:
+                    cohend_value = self.cohen_d(df_psych_metric, df_sw_metric).round(3)
+                f.write(f"{model}{self.horiz_sp}{cohend_value}{self.vert_sp}")
 
         f.close()
 
@@ -144,6 +184,14 @@ class ResultsGenerator(object):
         self.generate_p_table('psych')
         self.generate_p_table('sw')
         self.generate_p_table_both_dsplns()
+
+    @staticmethod
+    def cohen_d(group1, group2):
+        n1, n2 = len(group1), len(group2)
+        mean1, mean2 = np.mean(group1), np.mean(group2)
+        std1, std2 = np.std(group1, ddof=1), np.std(group2, ddof=1)
+        pooled_std = np.sqrt(((n1 - 1) * std1 ** 2 + (n2 - 1) * std2 ** 2) / (n1 + n2 - 2))
+        return (mean1 - mean2) / pooled_std
 
 
 def generate_result_table(table):
