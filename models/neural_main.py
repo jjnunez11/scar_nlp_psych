@@ -80,7 +80,7 @@ def neural_main(model_name, model_class, model_trainer, args):
     model = model_class(config)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
-    trainer = model_trainer(model, optimizer, loss_fn, config)
+    trainer = model_trainer(model, optimizer, loss_fn, config, args.imbalance_fix)
 
     # Train and Evaluate Model
     if eval_only:

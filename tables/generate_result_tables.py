@@ -16,7 +16,7 @@ class ResultsGenerator(object):
     # Columns needed to filter things correctly
     filter_cols = ["Table", "Model"]
     # Models
-    models = ["BoW", "CNN", "LSTM", "BERT"]
+    models = ["BoW", "CNN", "LSTM", "BERT"]  # "Rule", will need to adjust to do one sided t-tests? Or just put rule in its own table
     # Spacers for writing to copy-pastes for the tables
     horiz_sp = "\t"  # What to separate columns
     vert_sp = "\n"  # What to place at the end of the line to seperate rows vertically
@@ -141,7 +141,7 @@ class ResultsGenerator(object):
                         cohen_d_value = "-"
                     else:
                         cohen_d_value = self.cohen_d(df_model_a, df_model_b)
-                        cohen_d_value = cohen_d_value.round(6)
+                        cohen_d_value = cohen_d_value.round(2)
 
                     f.write(f"{self.horiz_sp}{cohen_d_value}")
                 f.write(self.vert_sp)
@@ -175,7 +175,7 @@ class ResultsGenerator(object):
                 if model == "BoW":
                     cohend_value = "inf"
                 else:
-                    cohend_value = self.cohen_d(df_psych_metric, df_sw_metric).round(3)
+                    cohend_value = self.cohen_d(df_psych_metric, df_sw_metric).round(2)
                 f.write(f"{model}{self.horiz_sp}{cohend_value}{self.vert_sp}")
 
         f.close()

@@ -1,3 +1,5 @@
+import sys
+
 from tqdm import tqdm
 import torch
 import time
@@ -15,7 +17,8 @@ class NeuralTrainer(object):
                  model,
                  optimizer,
                  loss_fn,
-                 config):
+                 config,
+                 imbalance_fix):
         self.model = model
         self.config = config
         self.optimizer = optimizer
@@ -30,6 +33,7 @@ class NeuralTrainer(object):
         self.n_epochs = config.epochs
         self.snapshot_path = os.path.join(config.results_dir_model, config.run_name + ".pt")
         self.model_file = config.model_file
+        self.imbalance_fix = imbalance_fix
 
     def fit(self,
             train_loader,
@@ -141,6 +145,9 @@ class NeuralTrainer(object):
                         print("Early Stopping. Epoch: {}, Best Dev F1: {}".format(epoch, self.best_moniter_metric))
                         break
 
+        if self.imbalance_fix == "undersampling" and epoch == self.patience and epoch == self.iters_not_improved:
+            sys.exit("During training using undersampling, models never improved on metric when evaluated on dev.\n "
+                     "We will NOT evaluate on test set, models will instead need to be retrained")
         test_history = self.evaluate_on_test_split(model_to_save, test_loader, test_history)
         return train_history, dev_history, test_history, self.start
 
