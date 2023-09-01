@@ -110,6 +110,14 @@ def transformer_main(model_name, model_class, model_dataset, args):
         trainer.test(loaded_model, dataloaders=dataset)
     else:
         trainer.fit(model, dataset)
+
+        # completed_epochs = trainer.current_epoch
+        # patience = args.patience
+        # print(f'Completed {completed_epochs} while patience is: {patience}')
+
+        if args.imbalance_fix == "undersampling" and trainer.current_epoch == args.patience:
+            sys.exit("During training using undersampling, models never improved on metric when evaluated on dev.\n "
+                     "We will NOT evaluate on test set, models will instead need to be retrained")
         trainer.test(model, dataset)
     train_history, dev_history, test_history, start_time = trainer.get_results()
     evaluator = Evaluator(model_name, test_history, config, start_time)

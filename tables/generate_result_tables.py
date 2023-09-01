@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import numpy as np
 from scipy.stats import ttest_rel
+import statsmodels.api as sm
 
 pd.set_option("display.max_colwidth", 10000)
 
@@ -17,6 +18,7 @@ class ResultsGenerator(object):
     filter_cols = ["Table", "Model"]
     # Models
     models = ["BoW", "CNN", "LSTM", "BERT"]  # "Rule", will need to adjust to do one sided t-tests? Or just put rule in its own table
+    max_tokens_models = ["Longformer_512", "Longformer_1024", "Longformer_2048", "Longformer_4096", "CNN_us", "BERT_512_us"]
     # Spacers for writing to copy-pastes for the tables
     horiz_sp = "\t"  # What to separate columns
     vert_sp = "\n"  # What to place at the end of the line to seperate rows vertically
@@ -26,7 +28,7 @@ class ResultsGenerator(object):
     # CSV files to read raw results from
     psych_raw_results_csv = os.path.join(r"../", "results", "final_results", "dspln_PSYCHIATRY_12", "dspln_PSYCHIATRY_12_results.csv")
     sw_raw_results_csv = os.path.join(r"../", "results", "final_results", "dspln_SOCIALWORK_12", "dspln_SOCIALWORK_12_results.csv")
-
+    max_tokens_results_csv = os.path.join(r"../", "tables", "result_tables",  "max_tokens_raw_df.csv")
     # Folder to print result tables
     out_dir = os.path.join("./result_tables")
 
@@ -38,6 +40,10 @@ class ResultsGenerator(object):
 
         self.psych_raw_df.to_csv(os.path.join(self.out_dir, "psych_raw_df.csv"))
         self.sw_raw_df.to_csv(os.path.join(self.out_dir, "sw_raw_df.csv"))
+
+        # For the max token results, I manually moved it to a new df in the table folder so I could rename the model
+        # to be Longformer_512, Longformer_1024 just to need less manual adjustment of these resulting tables
+        self.max_tokens_raw_df = self.extract_raw_results(self.max_tokens_results_csv)
 
     def extract_raw_results(self, raw_csv):
         raw_df = pd.read_csv(raw_csv, index_col="Run Name")
@@ -51,19 +57,24 @@ class ResultsGenerator(object):
 
         if target == 'psych':
             df = self.psych_raw_df
+            models = self.models
         elif target == 'sw':
             df = self.sw_raw_df
+            models = self.models
+        elif target == 'max_tokens':
+            df = self.max_tokens_raw_df
+            models = self.max_tokens_models
         else:
             raise ValueError
 
         # Group and calculate standard deviation for each metrics
         df = df.groupby(by="Model", axis=0)
         df = df[self.paper_metrics].agg([np.mean, np.std])
-        df = df.reindex(self.models)
+        df = df.reindex(models)
         df = df.round(decimals=4)
         df.to_csv(os.path.join(self.out_dir, f"{target}_results_table.csv"))
 
-        # Write-out a copy-paste version formatted for JAMA
+        # Write-out a copy-paste version formatted
         df = df.round(decimals=3)
         f = open(os.path.join(self.out_dir, f"{target}_results.table.txt"), "w")
 
@@ -74,8 +85,8 @@ class ResultsGenerator(object):
 
         f.write(self.vert_sp)
 
-        # Write the results in JAMA format
-        for model in self.models:
+        # Write the results
+        for model in models:
             f.write(model)
             for metric in self.paper_metrics:
                 mean = str(df.loc[model, metric]['mean'])
@@ -91,18 +102,24 @@ class ResultsGenerator(object):
     def generate_result_tables(self):
         self.generate_result_table("psych")
         self.generate_result_table("sw")
+        self.generate_result_table("max_tokens")
 
     def generate_p_table(self, target):
 
         if target == 'psych':
             df = self.psych_raw_df
+            models = self.models
         elif target == 'sw':
             df = self.sw_raw_df
+            models = self.models
+        elif target == 'max_tokens':
+            df = self.max_tokens_raw_df
+            models = self.max_tokens_models
         else:
             raise ValueError
 
         f = open(os.path.join(self.out_dir, f"{target}_pvalue_cohend_table.txt"), "w")
-        header = self.horiz_sp.join(['Model'] + self.models) + self.vert_sp
+        header = self.horiz_sp.join(['Model'] + models) + self.vert_sp
 
         f.write("Two-tailed t-test p-value")
         f.write(self.vert_sp)
@@ -110,9 +127,9 @@ class ResultsGenerator(object):
             f.write(metric + self.vert_sp)
             f.write(header)
             df_metric = df[["Model", metric]]
-            for model_a in self.models:
+            for model_a in models:
                 f.write(model_a)
-                for model_b in self.models:
+                for model_b in models:
                     df_model_a = df_metric[df_metric["Model"] == model_a][metric]
                     df_model_b = df_metric[df_metric["Model"] == model_b][metric]
                     if model_a == model_b:
@@ -132,9 +149,9 @@ class ResultsGenerator(object):
             f.write(metric + self.vert_sp)
             f.write(header)
             df_metric = df[["Model", metric]]
-            for model_a in self.models:
+            for model_a in models:
                 f.write(model_a)
-                for model_b in self.models:
+                for model_b in models:
                     df_model_a = df_metric[df_metric["Model"] == model_a][metric]
                     df_model_b = df_metric[df_metric["Model"] == model_b][metric]
                     if model_a == model_b:
@@ -180,9 +197,40 @@ class ResultsGenerator(object):
 
         f.close()
 
+    def generate_regression(self):
+
+        df = pd.read_csv(self.max_tokens_results_csv, index_col="Run Name")
+        # df = pd.read_csv(self.max_tokens_raw_df)
+
+        # Only longformers
+        lf_df = df[df['Model'].str.contains("Longformer")]
+        X = lf_df['Max Tokens']
+        X = sm.add_constant(X)
+
+        f = open(os.path.join(self.out_dir, f"longformer_regression_max_tokens.txt"), "w")
+        header = "Simple Regression Values with independent variable max tokens, dependent Balanced Accuracy and AUC"\
+                 + self.vert_sp
+
+        f.write("Simple regression p-value")
+        f.write(self.vert_sp)
+        for metric in ["Balanced Accuracy", "AUC"]:
+            f.write(metric + self.vert_sp)
+            f.write(header)
+
+            y = lf_df[metric]
+
+            model = sm.OLS(y, X).fit()
+            f.write(str(model.summary()))
+            f.write(self.vert_sp)
+            f.write(f'P-value is: {model.pvalues["Max Tokens"]}')
+            f.write(self.vert_sp)
+
+        f.close()
+
     def generate_p_tables(self):
         self.generate_p_table('psych')
         self.generate_p_table('sw')
+        self.generate_p_table('max_tokens')
         self.generate_p_table_both_dsplns()
 
     @staticmethod
@@ -272,6 +320,7 @@ if __name__ == "__main__":
     generator = ResultsGenerator()
     generator.generate_result_tables()
     generator.generate_p_tables()
+    generator.generate_regression()
 
     print("Printed table LaTeX string to file!")
 

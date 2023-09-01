@@ -8,7 +8,7 @@ def tuning_analysis(r_dir, r_f, tuning_table):
     df = pd.read_csv(r_f, index_col="Run Name")
     df = df[df['Table'] == tuning_table]
 
-    if tuning_table == "lf_tuning":
+    if tuning_table in ["lf_tuning", "bert_lf_tuning"]:
         df = df[df['Class Imbalance Fix'] == 'undersampling']
         df = df[df['Patience'] == 10]
     else:
@@ -18,7 +18,7 @@ def tuning_analysis(r_dir, r_f, tuning_table):
         to_group = ["CNN Weight Decay", "Learning Rate", "Dropout"]
     elif tuning_table == "lstm_tuning":
         to_group = ["Dropout", "LSTM Wt Dropout", "LSTM Embed Dropout", "Learning Rate"]
-    elif tuning_table in ["bert_tuning", "lf_tuning"]:
+    elif tuning_table in ["bert_tuning", "lf_tuning", "bert_lf_tuning"]:
         to_group = ["CNN Weight Decay", "Learning Rate"]
     elif tuning_table == "bow_tuning":
         to_group = ['BoW Classifier', 'BoW LR C', 'BoW RF Estimators', 'Max Tokens']
@@ -38,7 +38,8 @@ if __name__ == "__main__":
     # table = "bow_tuning"
     # table = "cnn_tuning"
     # table = "lstm_tuning"
-    table = "lf_tuning"
+    # table = "lf_tuning"
+    table = "bert_lf_tuning"
     target = "psych"
     # target = "sw"
 

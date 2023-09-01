@@ -145,6 +145,8 @@ class NeuralTrainer(object):
                         print("Early Stopping. Epoch: {}, Best Dev F1: {}".format(epoch, self.best_moniter_metric))
                         break
 
+        # New addition. When using undersampling, sometimes models don't train per eval on dev set. In this case,
+        # start the training from scratch, instead of evaluating on the test set.
         if self.imbalance_fix == "undersampling" and epoch == self.patience and epoch == self.iters_not_improved:
             sys.exit("During training using undersampling, models never improved on metric when evaluated on dev.\n "
                      "We will NOT evaluate on test set, models will instead need to be retrained")
