@@ -3,6 +3,9 @@ from argparse import ArgumentParser
 
 
 def get_args():
+
+    # Please note: we plan to add arguments to allow more customization of the BERTopic steps
+
     parser = ArgumentParser(description="Visualization method for neural networks using BERTTOPIC to visual topics "
                                         "important across multiple documents based on what sentences had high "
                                         "importance according to layered integraded gradients ")

@@ -9,7 +9,6 @@ if __name__ == '__main__':
     multi = MultiLIGTopic(args)
 
     multi.fit_topic_model(multi.sents)
-    print(f'Shape of topic info: {multi.topic_model.get_topic_info().shape}')
 
     multi.extract_top_topics(args.n_top_topics)
 

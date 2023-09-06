@@ -123,6 +123,25 @@ Thank you for your interest in our work! Please don't hesitate to reach out - Jo
 To reproduce the final results presented in our work, you will need a copy of our raw data, and then can use the .bat
 files within `/bats/tables/see_psych.bat` and `/bats/tables/see_counselling.bat` for the specific arguments provided. 
 
+## Novel Multi-document Interpretation method
+
+As part of revisions, we have developed and deployed a novel method to interpret neural networks across multiple 
+documents that combines Layered Integrated Gradients with BERTopic. 
+
+See the [multiligtopic](./multiligtopic) folder for the code for this method, again organized as a modular, with 
+parameters/arguments available in `/multiligtopic/args.py`
+
+It can be ran through the command line e.g.:
+
+```python -m multiligtopic --criteria mean_above --cutoff 0.01 --device gpu```
+
+Extracting the important sentences does take awhile. To save time, once the sentences are extract, the BERTopic
+portion can be ran separately:
+
+```python -m multiligtopic --load_sents --load_file ".\MultiLIGTopic\impt_sents_dspln_PSYCHIATRY_12_mean_above_0.01_49760.txt"```
+
+To use OpenAI, you will need to put your api key in a file `/multiligtopic/openai_api_key.py`
+
 ## Licence
 
 Copyright (C) 2023 John-Jose Nunez
