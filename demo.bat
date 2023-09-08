@@ -9,3 +9,6 @@ python -m models.bow --target "dspln_SOCIALWORK_12" --table "demo" --eval_only -
 python -m models.cnn  --target "dspln_SOCIALWORK_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\CNN\CNN_20230216-1157.pt" --data-dir ".\demo" --results-dir ".\demo"
 python -m models.lstm --target "dspln_SOCIALWORK_12" --table "demo"  --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\LSTM\LSTM_20230216-1518.pt" --data-dir ".\demo" --results-dir ".\demo"
 python -m models.bert --target "dspln_SOCIALWORK_12" --table "demo" --eval_only --model-file ".\results\final_results\dspln_SOCIALWORK_12\BERT\default\version_0\BERT--epoch=20_val_bal_val_bal=0.66.ckpt" --data-dir ".\demo" --results-dir ".\demo" --pretrained_dir ".\demo"
+
+:: Load toy sentences and run our multi-document interpretation
+python -m multiligtopic --load_sents --load_file ".\demo\multiligtopic\toy_impt_sents.txt"

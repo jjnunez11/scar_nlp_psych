@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import re
 import numpy as np
-from scipy.stats import ttest_rel
+from scipy.stats import ttest_rel, ttest_1samp
 import statsmodels.api as sm
 
 pd.set_option("display.max_colwidth", 10000)
@@ -165,6 +165,69 @@ class ResultsGenerator(object):
 
         f.close()
 
+    def generate_rule_p_values_cohen(self, target):
+
+        if target == 'psych':
+            df = self.psych_raw_df
+            models = self.models
+            bac = 0.5416
+            auc = 0.5416
+        elif target == 'sw':
+            df = self.sw_raw_df
+            models = self.models
+            bac = 0.5532
+            auc = 0.5532
+        else:
+            raise ValueError
+
+        f = open(os.path.join(self.out_dir, f"{target}_pvalue_cohen_rule.txt"), "w")
+        header = self.horiz_sp.join(['Model'] + models) + self.vert_sp
+
+        f.write("One-tailed t-test p-value")
+        f.write(self.vert_sp)
+        for metric in ["Balanced Accuracy", "AUC"]:
+            if metric == "Balanced Accuracy":
+                rule_based_metric = bac
+            elif metric == "AUC":
+                rule_based_metric = auc
+            else:
+                raise ValueError("Must be either Balanced Accuracy or AUC")
+            f.write(metric + self.vert_sp)
+            f.write(header)
+            df_metric = df[["Model", metric]]
+            for model_a in models:
+                df_model = df_metric[df_metric["Model"] == model_a][metric]
+                f.write(model_a)
+                p_value = ttest_1samp(a=df_model, popmean=rule_based_metric).pvalue
+                p_value = p_value.round(6)
+
+                f.write(f"{self.horiz_sp}{p_value}")
+                f.write(self.vert_sp)
+
+        f.write(self.vert_sp)
+        f.write(self.horiz_sp + "Cohen's d Effect Size")
+        f.write(self.vert_sp)
+
+        for metric in ["Balanced Accuracy", "AUC"]:
+            if metric == "Balanced Accuracy":
+                rule_based_metric = bac
+            elif metric == "AUC":
+                rule_based_metric = auc
+            else:
+                raise ValueError("Must be either Balanced Accuracy or AUC")
+            f.write(metric + self.vert_sp)
+            f.write(header)
+            df_metric = df[["Model", metric]]
+            for model_a in models:
+                df_model = df_metric[df_metric["Model"] == model_a][metric]
+                f.write(model_a)
+                cohen_d_value = self.one_sided_cohen_d(rule_based_metric, df_model).round(2)
+
+                f.write(f"{self.horiz_sp}{cohen_d_value}")
+                f.write(self.vert_sp)
+
+        f.close()
+
     def generate_p_table_both_dsplns(self):
         df_psych = self.psych_raw_df
         df_sw = self.sw_raw_df
@@ -200,7 +263,6 @@ class ResultsGenerator(object):
     def generate_regression(self):
 
         df = pd.read_csv(self.max_tokens_results_csv, index_col="Run Name")
-        # df = pd.read_csv(self.max_tokens_raw_df)
 
         # Only longformers
         lf_df = df[df['Model'].str.contains("Longformer")]
@@ -232,6 +294,8 @@ class ResultsGenerator(object):
         self.generate_p_table('sw')
         self.generate_p_table('max_tokens')
         self.generate_p_table_both_dsplns()
+        self.generate_rule_p_values_cohen("psych")
+        self.generate_rule_p_values_cohen("sw")
 
     @staticmethod
     def cohen_d(group1, group2):
@@ -240,6 +304,12 @@ class ResultsGenerator(object):
         std1, std2 = np.std(group1, ddof=1), np.std(group2, ddof=1)
         pooled_std = np.sqrt(((n1 - 1) * std1 ** 2 + (n2 - 1) * std2 ** 2) / (n1 + n2 - 2))
         return (mean1 - mean2) / pooled_std
+
+    @staticmethod
+    def one_sided_cohen_d(popmean, group):
+        mean = np.mean(group)
+        std = np.std(group, ddof=1)
+        return (mean - popmean) / std
 
 
 def generate_result_table(table):
@@ -293,29 +363,6 @@ def generate_result_table(table):
 
 
 if __name__ == "__main__":
-
-    # generate_result_table('survival_dif_lengths')
-    # generate_result_table('see_psych')
-    # generate_result_table('see_counselling')
-    # generate_result_table('compare_sexes')
-    # generate_result_table('need_emots_all_models')
-    # generate_result_table('need_infos_all_models')
-    # generate_result_table('need_emots_dif_n'
-    # generate_result_table('survival_all_models')
-    # generate_result_table('need_emots_dif_n')
-    # generate_result_table('need_infos_dif_n')
-    # generate_result_table('compare_n')
-    # generate_result_table('compare_stages')
-    # generate_result_table('survival_dif_lengths')
-
-    # generate_result_table("imbalance_fix")
-    # generate_result_table("compare_stages_emots")
-
-    # if False:  # all tables for paper
-    #    generate_result_table('survival_all_models')
-    #    generate_result_table('survival_dif_lengths')
-
-    # generate_result_table("compare_sex_controls")
 
     generator = ResultsGenerator()
     generator.generate_result_tables()
