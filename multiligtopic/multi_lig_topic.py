@@ -75,13 +75,6 @@ class MultiLIGTopic:
             model.load_state_dict(checkpoint['model_state_dict'])
             model.eval()
             self.model = model.to(self.device)
-            if config.device == "gpu":
-                # Due to gpu limits, we will have a backup copy of the model on cpu
-                # to use when a doc is too big for our gpu. Due to time constraints, we did not implement
-                # using the cpu model as backup, as initial attempts doing so substantially increased the time
-                # needed to run this
-                model_for_cpu = copy.deepcopy(model)
-                self.model_cpu = model_for_cpu.to("cpu")
 
             # Setup the vocabulary to be used
             model_config = checkpoint['config']
@@ -238,20 +231,8 @@ class MultiLIGTopic:
         if len(text) < self.gpu_vec_len_limit:
             text += ['<PAD>'] * (self.gpu_vec_len_limit - len(text))
         else:
-            text = text[0:self.gpu_vec_len_limit]  # Remove this to try using a CPU backup to extract from documents
-            # over 1500 tokens
+            text = text[0:self.gpu_vec_len_limit]
         indexed = [self.vocab[t] for t in text]
-
-        # This is the code likely neccesary to move to CPU as backup
-        move_to_cpu = len(text) > self.gpu_vec_len_limit and not self.device == "cpu"
-        move_to_cpu = False  # We have set this to False due to time constraints as this substantially increases the
-        # time required to extract, we we are able to fit a strong majority of documents already.
-        if move_to_cpu:
-            old_device = self.device
-            self.device = "cpu"
-            self.model.to("cpu")
-        else:
-            old_device = None
 
         self.model.zero_grad()
 
@@ -284,10 +265,6 @@ class MultiLIGTopic:
                                                                 text,
                                                                 delta)
 
-        # If doc was too big for gpu, move back to gpu for next
-        if move_to_cpu:
-            self.device = old_device
-            self.model.to(self.device)
 
         return viz_data_record
 
