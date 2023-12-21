@@ -118,11 +118,25 @@ class MultiLIGTopic:
         sure it is in the following format: topic: <topic label> """
         openai_model = OpenAI(model="gpt-3.5-turbo", exponential_backoff=True, chat=True, prompt=prompt)
 
-        representation_model = {
-            "KeyBERT": keybert_model,
-            "OpenAI": openai_model,
-            # "MMR": mmr_model, this is the default so no need to also show it
-        }
+        if self.config.openai_flag == "send_to_openai":
+
+            user_response = self.get_user_input()
+
+            if user_response == "y":
+                print("User has confirmed we can send data to Openai for summarization")
+                representation_model = {
+                    "KeyBERT": keybert_model,
+                    "OpenAI": openai_model}
+            else:
+                print("User cancelled sending data to Openai for summarization")
+                representation_model = {
+                    "OpenAI": openai_model,
+                }
+        else:
+            print("Openai flag not provided, will not use this for topic summarization")
+            representation_model = {
+                "OpenAI": openai_model,
+            }
         print('Prepared BERTopic Components')
 
         # topics, probs = topic_model.fit_transform(docs)
@@ -334,3 +348,13 @@ class MultiLIGTopic:
 
     def forward_with_sigmoid(self, nn_input):
         return torch.sigmoid(self.model(nn_input))
+
+    @staticmethod
+    def get_user_input():
+        while True:
+            user_input = input("About to send some data to Openai for topic summarization. \n"
+                               "Type 'y' to proceed or 'n' to cancel: ").lower()
+            if user_input in ['y', 'n']:
+                return user_input
+            else:
+                print("Invalid input. Please enter 'y' or 'n'.")

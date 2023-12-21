@@ -152,6 +152,12 @@ portion can be ran separately:
 
 To use OpenAI, you will need to put your api key in a file `/multiligtopic/openai_api_key.py`
 
+Because using the OpenAI summarization will send some data to OpenAI and potentially expose private data
+(top 4 most central documents for a topic, with default implementation) users must added the following argument with this value to send to OpenAI.
+They will then need to confirm again to do this by typing "y" when prompted. 
+
+```... --openai-flag "send_to_openai"```
+
 ## Licence
 
 Copyright (C) 2023 John-Jose Nunez

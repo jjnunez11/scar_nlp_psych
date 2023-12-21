@@ -59,6 +59,17 @@
 :: python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10
 :: python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10
 
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.cnn --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling  --weight-decay 0.0001 --dropout 0.85 --lr 0.0001 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+
 :: 512 token BERT
 :: python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --batch 8 --lr 0.0001 --weight-decay 0 --patience 10
 :: python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --batch 8 --lr 0.0001 --weight-decay 0 --patience 10
@@ -70,4 +81,16 @@
 :: python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --batch 8 --lr 0.0001 --weight-decay 0 --patience 10
 :: python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --batch 8 --lr 0.0001 --weight-decay 0 --patience 10
 :: python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --batch 8 --lr 0.0001 --weight-decay 0 --patience 10
+
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+python -m models.bert --target "dspln_PSYCHIATRY_12" --table "max_tokens" --imbalance-fix undersampling --max-tokens 512 --lr 0.0001 --weight-decay 0 --patience 10 --batch-size 1 --table_extra "batchsize 1"
+
 

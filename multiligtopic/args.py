@@ -16,6 +16,9 @@ def get_args():
     parser.add_argument('--criteria', default='max_pos', choices=['max_pos', 'max_neg', 'mean_above', 'mean_below'],
                         help="Criteria to determine if a sentence is important")
 
+    parser.add_argument('--openai-flag', default='', type=str, choices=['', "send_to_openai"],
+                        help="String should be send_to_openai if this is desired for topic summarization")
+
     parser.add_argument('--cutoff', default=0.08, type=float, help='Value a sentence must have for given criteria')
 
     parser.add_argument('--n-top-topics', default=20, type=int,
