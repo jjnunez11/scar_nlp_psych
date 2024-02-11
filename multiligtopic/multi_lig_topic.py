@@ -130,12 +130,12 @@ class MultiLIGTopic:
             else:
                 print("User cancelled sending data to Openai for summarization")
                 representation_model = {
-                    "OpenAI": openai_model,
+                    "KeyBERT": keybert_model,
                 }
         else:
             print("Openai flag not provided, will not use this for topic summarization")
             representation_model = {
-                "OpenAI": openai_model,
+                "KeyBERT": keybert_model,
             }
         print('Prepared BERTopic Components')
 
